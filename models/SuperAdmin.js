@@ -1,18 +1,14 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-
+import validator from "validator";
+import bcrypt from 'bcrypt'
 const superAdminSchema = new mongoose.Schema({
-    name: {
+    
+      email: {
         type: String,
-        required: [true, "Admin name is required"],
-        trim: true
-      },
-      username: {
-        type: String,
-        required: [true, "Username is required"],
+        required: [true, "Email is required"],
         unique: true,
-        trim: true,
-        minlength: [3, "Username must be at least 3 characters long"]
+        lowercase: true,
+        validate: [validator.isEmail, "Please enter a valid email"]
       },
       password: {
         type: String,

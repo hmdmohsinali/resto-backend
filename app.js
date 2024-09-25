@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from'dotenv';
+import adminRoute from './routes/adminRoutes.js'
 import superAdminRoute from './routes/superAdminRoutes.js'
 import connectToDB from "./config/connectToDB.js";
 import customerRoutes from './routes/customerRoutes.js'
@@ -15,8 +16,9 @@ app.get('/', (req, res)=>{
     res.send("heeelllo")
 })
 
-app.use('/superAdmin',superAdminRoute)
-app.use('/customer' , customerRoutes )
+app.use('/superAdmin',superAdminRoute);
+app.use('/admin',adminRoute);
+app.use('/customer' , customerRoutes );
 
 connectToDB();
 
