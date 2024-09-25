@@ -1,6 +1,7 @@
 import express from "express";
 import {
   signUp,
+  login,
   forgotPassword,
   verifyOtp,
   changePassword,
@@ -16,6 +17,8 @@ router.get("/", (req, res) => {
 })
 
 router.post('/signup', signUp);
+
+router.post('/login', login);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/change-password", changePassword);
