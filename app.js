@@ -4,6 +4,7 @@ import adminRoute from './routes/adminRoutes.js'
 import superAdminRoute from './routes/superAdminRoutes.js'
 import connectToDB from "./config/connectToDB.js";
 import customerRoutes from './routes/customerRoutes.js'
+import cors from 'cors'
 dotenv.config()
 const app= express();
 const PORT = process.env.PORT || 4000
