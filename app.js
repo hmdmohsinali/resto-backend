@@ -2,11 +2,13 @@ import express from "express";
 import dotenv from'dotenv';
 import superAdminRoute from './routes/superAdminRoutes.js'
 import connectToDB from "./config/connectToDB.js";
-
+import customerRoutes from './routes/customerRoutes.js'
 dotenv.config()
 const app= express();
 const PORT = process.env.PORT || 4000
 
+
+app.use(express.json())
 
 
 app.get('/', (req, res)=>{
@@ -14,6 +16,7 @@ app.get('/', (req, res)=>{
 })
 
 app.use('/superAdmin',superAdminRoute)
+app.use('/customer' , customerRoutes )
 
 connectToDB();
 
