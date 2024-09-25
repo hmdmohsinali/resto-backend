@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv';
 import { transporter } from '../utils/transpoter.js';
-import SuperAdmin from '../models/superAdmin.js';
+import SuperAdmin from '../models/SuperAdmin.js';
 
 dotenv.config();
 
