@@ -106,7 +106,7 @@ export const deleteRestaurant = async (req, res) => {
   };
 
   export const changeRestaurantPassword = async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.query;
     const { newPassword } = req.body;
   
     try {
