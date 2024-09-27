@@ -89,10 +89,12 @@ export const getRestaurantNames = async (req, res) => {
 };
 
 export const deleteRestaurant = async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.query;
+    
   
     try {
       const restaurant = await Restaurant.findByIdAndDelete(id);
+      
       if (!restaurant) {
         return res.status(404).json({ msg: "Restaurant not found" });
       }
