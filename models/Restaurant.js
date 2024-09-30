@@ -26,12 +26,19 @@ const restaurantSchema = new mongoose.Schema({
         type: String
     },
     imagesCover: {
-        type: [String], // Array of strings to store image URLs
-       
+        type: [String] // Array of strings to store image URLs
     },
     description: {
         type: String,
-        trim: true, // To remove excess spaces
+        trim: true // To remove excess spaces
+    },
+    address: {
+        type: String, // Address field, not required
+        trim: true
+    },
+    locationLink: {
+        type: String, // Location link field, not required
+        trim: true
     }
 });
 
