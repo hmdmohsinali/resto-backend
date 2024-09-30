@@ -1,8 +1,8 @@
 import express from "express";
 import {
-    addCategory,
-    addMenuItem,
-    addPromotionalImages,
+  addCategory,
+  addMenuItem,
+  addPromotionalImages,
   addTable,
   deletePromotionalImage,
   deleteRestaurantImage,
@@ -12,9 +12,17 @@ import {
   login,
   signUp,
   toggleMenuItemVisibility,
+  toggleVacationMode,
   updateAdress,
   updatePax,
   updateRestaurantDetails,
+  addPromotionalHours,
+  updateOperationalHours,
+  getOperationalHours,
+  getPromotionalHours,
+  addPromotionCode,
+  getAllPromotions,
+  deletePromotionCode,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -40,13 +48,21 @@ router.get("/getCategories", getCategories);
 router.post("/addMenuItem", addMenuItem);
 router.put("/editMenu", editMenuItem);
 
-
 router.put("/toggleMenuVisibility", toggleMenuItemVisibility);
 router.get("/getAllMenuItems", getAllMenuItems);
 
-router.post ('/upateAdress' , updateAdress)
+router.post("/upateAdress", updateAdress);
+router.post("/toggleVacation", toggleVacationMode);
+
+router.post('/addPromotionalHours', addPromotionalHours)
+router.post('/updateOperationalHours', updateOperationalHours)
+router.get('/getOperationalHours', getOperationalHours)
+router.get('/getPromotionalHours', getPromotionalHours)
 
 
+router.post('/addPromotionCode' , addPromotionCode);
+router.get('/getAllPromotions' , getAllPromotions);
+router.delete('/deletePromotionCode' , deletePromotionCode)
 
 
 export default router;
