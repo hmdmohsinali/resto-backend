@@ -186,7 +186,7 @@ export const getUserDetails = async (req, res) => {
         return res.status(404).json({ msg: "User not found" });
       }
   
-      const { password, otp, ...userDetails } = user.toObject();
+      const { password, otp, otpVerified, ...userDetails } = user.toObject();
   
       return res.status(200).json(userDetails);
     } catch (error) {

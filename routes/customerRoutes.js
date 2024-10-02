@@ -29,8 +29,8 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/change-password", changePassword);
 router.put("/edit-profile", editProfile);
-router.get('/getUserDetails' , getUserDetails);
-router.delete('/deleteUser', deleteUser);
+router.get('/getUserDetails/:userId' , getUserDetails);
+router.delete('/deleteUser/:userId', deleteUser);
 router.get('/getRestaurantsWithTags', getAllRestaurantsWithTags)
 router.get('/getAllMenuItems' , getMenuItems)
 router.get('/getSingleItem' , getMenuItemById);
