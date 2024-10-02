@@ -5,6 +5,8 @@ import { transporter } from "../utils/transpoter.js";
 import Restaurant from "../models/Restaurant.js";
 import Reservation from "../models/Reservations.js";
 import Menu from "../models/Menu.js";
+import Review from "../models/Review.js";
+import { updateRestaurantRating } from "../utils/updateRating.js";
 
 dotenv.config();
 
@@ -25,7 +27,7 @@ export const signUp = async (req, res) => {
     await customer.save();
     console.log("Customer saved to database");
 
-    return res.status(201).json({ msg: "Customer created successfully" });
+    return res.status(201).json({ msg: "Customer created successfully" , id: customer._id});
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Server error" });
@@ -287,6 +289,72 @@ export const getMenuItemById = async (req, res) => {
       }
   
       res.status(200).json(menuItem);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+    }
+  };
+
+
+export const createReview = async (req, res) => {
+    const { restaurantId, reservationId, rating, reviewText, images } = req.body;
+    
+    try {
+      // Check if the reservation exists and is valid
+      const reservation = await Reservation.findById(reservationId);
+      if (!reservation || reservation.user.toString() !== req.user._id.toString()) {
+        return res.status(400).json({ message: 'Invalid reservation or not authorized' });
+      }
+  
+      // Ensure the reservation belongs to the restaurant
+      if (reservation.restaurant.toString() !== restaurantId) {
+        return res.status(400).json({ message: 'Reservation does not match the restaurant' });
+      }
+  
+      // Create a new review
+      const review = new Review({
+        user: req.user._id,
+        restaurant: restaurantId,
+        reservation: reservationId,
+        rating,
+        reviewText,
+        images
+      });
+  
+      await review.save();
+  
+      // Update restaurant's average rating
+      await updateRestaurantRating(restaurantId);
+  
+      res.status(201).json({ message: 'Review created successfully', review });
+  
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+    }
+  };
+  
+export const getRestaurantReviews = async (req, res) => {
+    const { restaurantId } = req.params;
+  
+    try {
+      // Fetch the restaurant along with its average rating
+      const restaurant = await Restaurant.findById(restaurantId).select('averageRating');
+      
+      if (!restaurant) {
+        return res.status(404).json({ message: 'Restaurant not found.' });
+      }
+  
+      // Fetch all reviews for the restaurant
+      const reviews = await Review.find({ restaurant: restaurantId })
+        .populate('user', 'name')  // Populate user to get the name of the reviewer
+        .select('user images reviewText rating')  // Select specific fields from the Review schema
+        .exec();
+  
+      // Send the reviews and average rating from the restaurant schema
+      res.status(200).json({
+        totalReviews: reviews.length,
+        averageRating: restaurant.averageRating,
+        reviews
+      });
     } catch (error) {
       res.status(500).json({ message: 'Server error', error });
     }
