@@ -60,6 +60,10 @@ const reservationSchema = new mongoose.Schema({
     discountApplied: {
         type: Number, // Total discount applied (in percentage or amount)
         default: 0
+    },
+    completed:{
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

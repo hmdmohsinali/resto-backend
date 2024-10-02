@@ -27,7 +27,9 @@ export const signUp = async (req, res) => {
     await customer.save();
     console.log("Customer saved to database");
 
-    return res.status(201).json({ msg: "Customer created successfully" , id: customer._id});
+    return res
+      .status(201)
+      .json({ msg: "Customer created successfully", id: customer._id });
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Server error" });
@@ -66,7 +68,7 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ msg: "Customer not found" });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp = Math.floor(10000 + Math.random() * 90000);
     user.otp = otp;
     await user.save();
 
@@ -153,6 +155,21 @@ export const editProfile = async (req, res) => {
 
     return res.status(200).json({ msg: "Profile updated successfully", user });
   } catch (error) {
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const getAllRestaurantsWithTags = async (req, res) => {
+  try {
+    // Fetch all restaurants and select the required fields
+    const restaurants = await Restaurant.find({}).select(
+      "averageRating mainTag name address"
+    ); // Select only the fields you want
+
+    // Return the fetched restaurants
+    return res.status(200).json(restaurants);
+  } catch (error) {
+    console.error("Error fetching restaurants:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
@@ -277,85 +294,92 @@ export const getMenuItems = async (req, res) => {
 };
 
 export const getMenuItemById = async (req, res) => {
-    const { menuItemId } = req.query;
-  
-    try {
-      const menuItem = await Menu.findById(menuItemId)
-        .populate('category', 'name')  
-        .exec();
-  
-      if (!menuItem) {
-        return res.status(404).json({ message: 'Menu item not found.' });
-      }
-  
-      res.status(200).json(menuItem);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error', error });
-    }
-  };
+  const { menuItemId } = req.query;
 
+  try {
+    const menuItem = await Menu.findById(menuItemId)
+      .populate("category", "name")
+      .exec();
+
+    if (!menuItem) {
+      return res.status(404).json({ message: "Menu item not found." });
+    }
+
+    res.status(200).json(menuItem);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 export const createReview = async (req, res) => {
-    const { restaurantId, reservationId, rating, reviewText, images } = req.body;
-    
-    try {
-      // Check if the reservation exists and is valid
-      const reservation = await Reservation.findById(reservationId);
-      if (!reservation || reservation.user.toString() !== req.user._id.toString()) {
-        return res.status(400).json({ message: 'Invalid reservation or not authorized' });
-      }
-  
-      // Ensure the reservation belongs to the restaurant
-      if (reservation.restaurant.toString() !== restaurantId) {
-        return res.status(400).json({ message: 'Reservation does not match the restaurant' });
-      }
-  
-      // Create a new review
-      const review = new Review({
-        user: req.user._id,
-        restaurant: restaurantId,
-        reservation: reservationId,
-        rating,
-        reviewText,
-        images
-      });
-  
-      await review.save();
-  
-      // Update restaurant's average rating
-      await updateRestaurantRating(restaurantId);
-  
-      res.status(201).json({ message: 'Review created successfully', review });
-  
-    } catch (error) {
-      res.status(500).json({ message: 'Server error', error });
+  const { restaurantId, reservationId, rating, reviewText, images } = req.body;
+
+  try {
+    // Check if the reservation exists and is valid
+    const reservation = await Reservation.findById(reservationId);
+    if (
+      !reservation ||
+      reservation.user.toString() !== req.user._id.toString()
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid reservation or not authorized" });
     }
-  };
-  
+
+    // Ensure the reservation belongs to the restaurant
+    if (reservation.restaurant.toString() !== restaurantId) {
+      return res
+        .status(400)
+        .json({ message: "Reservation does not match the restaurant" });
+    }
+
+    // Create a new review
+    const review = new Review({
+      user: req.user._id,
+      restaurant: restaurantId,
+      reservation: reservationId,
+      rating,
+      reviewText,
+      images,
+    });
+
+    await review.save();
+
+    // Update restaurant's average rating
+    await updateRestaurantRating(restaurantId);
+
+    res.status(201).json({ message: "Review created successfully", review });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 export const getRestaurantReviews = async (req, res) => {
-    const { restaurantId } = req.params;
-  
-    try {
-      // Fetch the restaurant along with its average rating
-      const restaurant = await Restaurant.findById(restaurantId).select('averageRating');
-      
-      if (!restaurant) {
-        return res.status(404).json({ message: 'Restaurant not found.' });
-      }
-  
-      // Fetch all reviews for the restaurant
-      const reviews = await Review.find({ restaurant: restaurantId })
-        .populate('user', 'name')  // Populate user to get the name of the reviewer
-        .select('user images reviewText rating')  // Select specific fields from the Review schema
-        .exec();
-  
-      // Send the reviews and average rating from the restaurant schema
-      res.status(200).json({
-        totalReviews: reviews.length,
-        averageRating: restaurant.averageRating,
-        reviews
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Server error', error });
+  const { restaurantId } = req.params;
+
+  try {
+    // Fetch the restaurant along with its average rating
+    const restaurant = await Restaurant.findById(restaurantId).select(
+      "averageRating"
+    );
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found." });
     }
-  };
+
+    // Fetch all reviews for the restaurant
+    const reviews = await Review.find({ restaurant: restaurantId })
+      .populate("user", "name") // Populate user to get the name of the reviewer
+      .select("user images reviewText rating") // Select specific fields from the Review schema
+      .exec();
+
+    // Send the reviews and average rating from the restaurant schema
+    res.status(200).json({
+      totalReviews: reviews.length,
+      averageRating: restaurant.averageRating,
+      reviews,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
