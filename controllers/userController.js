@@ -139,29 +139,35 @@ export const verifyOtp = async (req, res) => {
     }
   };
 
-export const editProfile = async (req, res) => {
-  const { userId, fullName, address, phoneNumber } = req.body;
-
-  try {
-    let user = await Customer.findById(userId);
-    if (!user) {
-      return res.status(404).json({ msg: "Customer not found" });
+  export const editProfile = async (req, res) => {
+    const { userId, fullName, address, phoneNumber } = req.body;
+  
+    try {
+      let user = await Customer.findById(userId);
+      if (!user) {
+        return res.status(404).json({ msg: "Customer not found" });
+      }
+  
+      // Update only allowed fields
+      if (fullName) user.fullName = fullName;
+      if (address) user.address = address;
+      if (phoneNumber) user.phoneNumber = phoneNumber;
+  
+      // Prevent updates to other fields
+      if (req.body.email || req.body.password || req.body.otpVerified) {
+        return res.status(400).json({ msg: "Not allowed to update email, password, or verification status" });
+      }
+  
+      await user.save();
+  
+      return res.status(200).json({ msg: "Profile updated successfully", user });
+    } catch (error) {
+      return res.status(500).json({ error: "Server error" });
     }
-
-    user.fullName = fullName || user.fullName;
-    user.address = address || user.address;
-    user.phoneNumber = phoneNumber || user.phoneNumber;
-
-    await user.save();
-
-    return res.status(200).json({ msg: "Profile updated successfully", user });
-  } catch (error) {
-    return res.status(500).json({ error: "Server error" });
-  }
-};
+  };
 
 export const deleteUser = async (req, res) => {
-    const { userId } = req.params; // assuming userId is passed in the URL
+    const { userId } = req.params; 
   
     try {
       const user = await Customer.findByIdAndDelete(userId);
@@ -177,7 +183,7 @@ export const deleteUser = async (req, res) => {
 };  
 
 export const getUserDetails = async (req, res) => {
-    const { userId } = req.params; // assuming userId is passed in the URL
+    const { userId } = req.params; 
   
     try {
       const user = await Customer.findById(userId);
