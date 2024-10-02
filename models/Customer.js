@@ -33,6 +33,10 @@ const customerSchema = new mongoose.Schema({
   },
   otp: {
     type: String,
+},
+otpVerified: {
+  type: Boolean,
+  default: false, 
 }
 });
 

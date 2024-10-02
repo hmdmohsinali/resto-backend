@@ -12,6 +12,8 @@ import {
   createReview,
   getRestaurantReviews,
   getAllRestaurantsWithTags,
+  getUserDetails,
+  deleteUser,
 } from "../controllers/userController.js";
 
 
@@ -22,12 +24,13 @@ router.get("/", (req, res) => {
 })
 
 router.post('/signup', signUp);
-
 router.post('/login', login);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/change-password", changePassword);
 router.put("/edit-profile", editProfile);
+router.get('/getUserDetails' , getUserDetails);
+router.delete('/deleteUser', deleteUser);
 router.get('/getRestaurantsWithTags', getAllRestaurantsWithTags)
 router.get('/getAllMenuItems' , getMenuItems)
 router.get('/getSingleItem' , getMenuItemById);

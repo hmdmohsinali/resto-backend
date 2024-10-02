@@ -29,7 +29,7 @@ app.use('/superAdmin',superAdminRoute);
 app.use('/admin',adminRoute);
 app.use('/customer' , customerRoutes );
 
-connectToDB();
+connectToDB()
 
 app.listen(PORT,()=>{
     console.log(`server is running on PORT ${PORT}`)

@@ -97,46 +97,47 @@ export const forgotPassword = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
-
 export const verifyOtp = async (req, res) => {
-  const { otp, userId } = req.body;
-
-  try {
-    const user = await Customer.findById(userId);
-    if (!user || user.otp !== otp) {
-      return res.status(400).json({ msg: "Invalid OTP" });
+    const { otp, userId } = req.body;
+  
+    try {
+      const user = await Customer.findById(userId);
+      if (!user || user.otp !== otp) {
+        return res.status(400).json({ msg: "Invalid OTP" });
+      }
+  
+      user.otp = null; // Clear the OTP after verification
+      user.otpVerified = true; // Mark user as OTP verified
+      await user.save();
+  
+      return res.status(200).json({ msg: "OTP verified successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: "Server error" });
     }
+  };
 
-    user.otp = null;
-    await user.save();
 
-    return res.status(200).json({ msg: "OTP verified successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: "Server error" });
-  }
-};
-
-// Change Password
-export const changePassword = async (req, res) => {
-  const { newPassword, userId } = req.body;
-
-  try {
-    const user = await Customer.findById(userId);
-    if (!user) {
-      return res.status(404).json({ msg: "Customer not found" });
+  export const changePassword = async (req, res) => {
+    const { newPassword, userId } = req.body;
+  
+    try {
+      const user = await Customer.findById(userId);
+      if (!user) {
+        return res.status(404).json({ msg: "Customer not found" });
+      }
+  
+      if (!user.otpVerified) {
+        return res.status(403).json({ msg: "User is not verified to change password" });
+      }
+  
+      user.password = newPassword;
+      await user.save();
+  
+      return res.status(200).json({ msg: "Password changed successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: "Server error" });
     }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    user.password = hashedPassword;
-    await user.save();
-
-    return res.status(200).json({ msg: "Password changed successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: "Server error" });
-  }
-};
+  };
 
 export const editProfile = async (req, res) => {
   const { userId, fullName, address, phoneNumber } = req.body;
@@ -159,14 +160,46 @@ export const editProfile = async (req, res) => {
   }
 };
 
+export const deleteUser = async (req, res) => {
+    const { userId } = req.params; // assuming userId is passed in the URL
+  
+    try {
+      const user = await Customer.findByIdAndDelete(userId);
+  
+      if (!user) {
+        return res.status(404).json({ msg: "User not found" });
+      }
+  
+      return res.status(200).json({ msg: "User deleted successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: "Server error" });
+    }
+};  
+
+export const getUserDetails = async (req, res) => {
+    const { userId } = req.params; // assuming userId is passed in the URL
+  
+    try {
+      const user = await Customer.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ msg: "User not found" });
+      }
+  
+      const { password, otp, ...userDetails } = user.toObject();
+  
+      return res.status(200).json(userDetails);
+    } catch (error) {
+      return res.status(500).json({ error: "Server error" });
+    }
+  };
+
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
-    // Fetch all restaurants and select the required fields
     const restaurants = await Restaurant.find({}).select(
-      "averageRating mainTag name address"
+      "averageRating mainTag name address imageSnippet"
     ); // Select only the fields you want
 
-    // Return the fetched restaurants
     return res.status(200).json(restaurants);
   } catch (error) {
     console.error("Error fetching restaurants:", error.message);
