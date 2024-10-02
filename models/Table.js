@@ -2,17 +2,22 @@ import mongoose from "mongoose";
 
 const tableSchema = new mongoose.Schema({
     tableNo: {
-        type: Number,
-        required: [true, "Table number is required"],
-        min: [1, "Table number must be at least 1"]
+        type: String,       
     },
     totalPax: {
         type: Number,
         required: [true, "Total pax is required"],
     },
+    availablePax: {
+        type: Number,
+        required: true,
+        default: function() {
+            return this.totalPax;
+        }
+    },
     restaurantId: {
-        type: mongoose.Schema.Types.ObjectId, // Reference to the restaurant
-        ref: 'Restaurant', // Assuming there's a Restaurant model
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Restaurant', 
         required: [true, "Restaurant ID is required"]
     }
 });

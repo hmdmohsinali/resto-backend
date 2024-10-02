@@ -84,6 +84,10 @@ const restaurantSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  averageRating: {
+    type: Number,
+    default: 0
+  },
   operationalHours: [operationalHoursSchema], 
   promotionalHours: [promotionalHoursSchema],
 });

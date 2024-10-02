@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Category from './Category'; // Assuming Category is in the same folder
 
 const optionSchema = new mongoose.Schema({
     name: { type: String, required: true },
