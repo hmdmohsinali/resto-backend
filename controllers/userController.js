@@ -203,7 +203,7 @@ export const getUserDetails = async (req, res) => {
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
     const restaurants = await Restaurant.find({}).select(
-      "averageRating mainTag name address imageSnippet"
+      "averageRating mainTag name address imageSnippet imageCover"
     ); // Select only the fields you want
 
     return res.status(200).json(restaurants);

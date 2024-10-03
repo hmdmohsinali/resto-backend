@@ -4,6 +4,7 @@ import PromotionSlider from "../models/PromotionSlider.js";
 import bcrypt from "bcrypt";
 import Category from "../models/Category.js";
 import Promotion from "../models/Promotion.js";
+import Menu from "../models/Menu.js";
 
 export const signUp = async (req, res) => {
   const { name, username, password } = req.body;
@@ -52,8 +53,10 @@ export const login = async (req, res) => {
 };
 
 export const updateRestaurantDetails = async (req, res) => {
-  const updates = req.body;
+  const updates = req.body; // Contains only the fields to be updated
   const { id } = req.query;
+
+  // Disallow updating username and password
   if (updates.username || updates.password) {
     return res.status(400).json({
       success: false,
@@ -62,7 +65,10 @@ export const updateRestaurantDetails = async (req, res) => {
   }
 
   try {
+    // Find the restaurant by ID
     const restaurant = await Restaurant.findById(id);
+
+    // If restaurant doesn't exist
     if (!restaurant) {
       return res.status(404).json({
         success: false,
@@ -70,12 +76,25 @@ export const updateRestaurantDetails = async (req, res) => {
       });
     }
 
-    for (const key in updates) {
-      if (restaurant[key] !== undefined) {
-        restaurant[key] = updates[key];
-      }
-    }
+    // Update only the provided fields and retain existing ones
+    const updatedFields = {
+      name: updates.name || restaurant.name,
+      mainTag: updates.mainTag || restaurant.mainTag,
+      imageSnippet: updates.imageSnippet || restaurant.imageSnippet,
+      imagesCover: updates.imagesCover || restaurant.imagesCover,
+      description: updates.description || restaurant.description,
+      address: updates.address || restaurant.address,
+      locationLink: updates.locationLink || restaurant.locationLink,
+      vacationMode: updates.vacationMode !== undefined ? updates.vacationMode : restaurant.vacationMode,
+      operationalHours: updates.operationalHours || restaurant.operationalHours,
+      promotionalHours: updates.promotionalHours || restaurant.promotionalHours,
+      averageRating: restaurant.averageRating, // Keep this unchanged as it's calculated elsewhere
+    };
 
+    // Apply the updates to the restaurant document
+    Object.assign(restaurant, updatedFields);
+
+    // Save the updated restaurant
     await restaurant.save();
 
     res.status(200).json({
@@ -90,7 +109,6 @@ export const updateRestaurantDetails = async (req, res) => {
     });
   }
 };
-
 export const deleteRestaurantImage = async (req, res) => {
   const { imageUrl } = req.body;
   const { id } = req.query;
