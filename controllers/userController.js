@@ -7,7 +7,7 @@ import Reservation from "../models/Reservations.js";
 import Menu from "../models/Menu.js";
 import Review from "../models/Review.js";
 import { updateRestaurantRating } from "../utils/updateRating.js";
-
+import moment from "moment"
 dotenv.config();
 
 export const signUp = async (req, res) => {
@@ -398,9 +398,7 @@ export const getRestaurantReviews = async (req, res) => {
 
   try {
     // Fetch the restaurant along with its average rating
-    const restaurant = await Restaurant.findById(restaurantId).select(
-      "averageRating"
-    );
+    const restaurant = await Restaurant.findById(restaurantId).select("averageRating");
 
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found." });
@@ -409,16 +407,42 @@ export const getRestaurantReviews = async (req, res) => {
     // Fetch all reviews for the restaurant
     const reviews = await Review.find({ restaurant: restaurantId })
       .populate("user", "name") // Populate user to get the name of the reviewer
-      .select("user images reviewText rating") // Select specific fields from the Review schema
+      .select("user images reviewText rating createdAt") // Select specific fields from the Review schema
       .exec();
 
-    // Send the reviews and average rating from the restaurant schema
+    // Calculate total reviews
+    const totalReviews = reviews.length;
+
+    // Calculate the breakdown of ratings
+    const ratingBreakdown = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+
+    reviews.forEach((review) => {
+      ratingBreakdown[review.rating]++;
+    });
+
+    // Format the review data to include the user's full name, how long ago the review was made, review text, images, and rating
+    const formattedReviews = reviews.map((review) => ({
+      fullName: review.user.name,
+      daysAgo: moment(review.createdAt).fromNow(), // e.g., "2 days ago"
+      reviewText: review.reviewText,
+      images: review.images,
+      rating: review.rating,
+    }));
+
+    // Send the reviews, rating breakdown, total reviews, and average rating from the restaurant schema
     res.status(200).json({
-      totalReviews: reviews.length,
+      totalReviews,
       averageRating: restaurant.averageRating,
-      reviews,
+      ratingBreakdown,
+      reviews: formattedReviews,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
-};
+}
