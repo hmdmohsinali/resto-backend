@@ -312,6 +312,20 @@ export const createReservation = async (req, res) => {
   }
 };
 
+export const getPrAndOr = async (req, res)=> {
+  const {id} = req.params
+  try {
+    const restaurants = await Restaurant.findById(id).select(
+      " name description imagesCover operationalHours promotionalHours locationLink"
+    ); // Select only the fields you want
+
+    return res.status(200).json(restaurants);
+  } catch (error) {
+    console.error("Error fetching restaurants:", error.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+}
+
 export const getMenuItems = async (req, res) => {
   const { restaurantId } = req.query;
 

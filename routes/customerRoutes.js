@@ -14,6 +14,7 @@ import {
   getAllRestaurantsWithTags,
   getUserDetails,
   deleteUser,
+  getPrAndOr,
 } from "../controllers/userController.js";
 
 
@@ -34,10 +35,11 @@ router.delete('/deleteUser/:userId', deleteUser);
 router.get('/getRestaurantsWithTags', getAllRestaurantsWithTags)
 router.get('/getAllMenuItems' , getMenuItems)
 router.get('/getSingleItem' , getMenuItemById);
+router.get('/getPromotionalAndOperationalHours/:id', getPrAndOr)
 router.post('/bookReservation' , createReservation);
 router.post('/addReview' , createReview);
 router.get('/getRestaurantReviews/:restaurantId', getRestaurantReviews)
 router.get('/getHistory' , );
 router.get('/upcomingBooking' , )
 
-export default router;
+export default router
