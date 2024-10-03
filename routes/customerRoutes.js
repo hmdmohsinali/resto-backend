@@ -36,7 +36,7 @@ router.get('/getAllMenuItems' , getMenuItems)
 router.get('/getSingleItem' , getMenuItemById);
 router.post('/bookReservation' , createReservation);
 router.post('/addReview' , createReview);
-router.get('/getRestaurantReviews', getRestaurantReviews)
+router.get('/getRestaurantReviews/:restaurantId', getRestaurantReviews)
 router.get('/getHistory' , );
 router.get('/upcomingBooking' , )
 
