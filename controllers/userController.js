@@ -8,6 +8,7 @@ import Menu from "../models/Menu.js";
 import Review from "../models/Review.js";
 import { updateRestaurantRating } from "../utils/updateRating.js";
 import moment from "moment"
+import Category from "../models/Category.js";
 dotenv.config();
 
 export const signUp = async (req, res) => {
@@ -317,7 +318,7 @@ export const getPrAndOr = async (req, res)=> {
   try {
     const restaurants = await Restaurant.findById(id).select(
       " name description imagesCover operationalHours promotionalHours locationLink"
-    ); // Select only the fields you want
+    );
 
     return res.status(200).json(restaurants);
   } catch (error) {
@@ -327,21 +328,66 @@ export const getPrAndOr = async (req, res)=> {
 }
 
 export const getMenuItems = async (req, res) => {
-  const { restaurantId } = req.query;
+  const { restaurantId, categoryName } = req.query; // Get restaurantId and optional categoryName
 
   try {
-    const menuItems = await Menu.find({ restaurant: restaurantId })
+    // If categoryName is provided, find the category first
+    let categoryId = null;
+    if (categoryName) {
+      const category = await Category.findOne({
+        restaurant: restaurantId,
+        name: categoryName
+      }).exec();
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found." });
+      }
+
+      categoryId = category._id; // Store the category ID
+    }
+
+    // Build the query for fetching menu items
+    const query = {
+      restaurant: restaurantId,
+    };
+
+    // If categoryId is available, add it to the query
+    if (categoryId) {
+      query.category = categoryId;
+    }
+
+    // Fetch menu items based on the query
+    const menuItems = await Menu.find(query)
       .select("name price image description") // Select specific fields
       .exec();
 
     if (!menuItems || menuItems.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No menu items found for this restaurant." });
+      return res.status(404).json({ message: "No menu items found for this restaurant." });
     }
 
+    // Return the menu items
     res.status(200).json(menuItems);
   } catch (error) {
+    console.error("Error fetching menu items:", error); // Log error for debugging
+    res.status(500).json({ message: "Server error", error });
+  }
+}
+export const getCategories = async (req, res) => {
+  const { restaurantId } = req.query; // Assuming restaurantId is passed as a query parameter
+
+  try {
+    // Find categories by restaurant ID and select only the name field
+    const categories = await Category.find({ restaurant: restaurantId })
+      .select('name')
+      .exec();
+
+    if (!categories || categories.length === 0) {
+      return res.status(404).json({ message: "No categories found for this restaurant." });
+    }
+
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };

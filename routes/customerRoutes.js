@@ -15,6 +15,7 @@ import {
   getUserDetails,
   deleteUser,
   getPrAndOr,
+  getCategories,
 } from "../controllers/userController.js";
 
 
@@ -33,7 +34,8 @@ router.put("/edit-profile", editProfile);
 router.get('/getUserDetails/:userId' , getUserDetails);
 router.delete('/deleteUser/:userId', deleteUser);
 router.get('/getRestaurantsWithTags', getAllRestaurantsWithTags)
-router.get('/getAllMenuItems' , getMenuItems)
+router.get('/getAllMenuItems' , getMenuItems);
+router.get('/getCategories', getCategories);
 router.get('/getSingleItem' , getMenuItemById);
 router.get('/getPromotionalAndOperationalHours/:id', getPrAndOr)
 router.post('/bookReservation' , createReservation);
