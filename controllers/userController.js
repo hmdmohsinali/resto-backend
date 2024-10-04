@@ -340,7 +340,7 @@ export const getMenuItems = async (req, res) => {
       }).exec();
 
       if (!category) {
-        return res.status(404).json({ message: "Category not found." });
+        return res.status(200).json([]); // Return empty array if category not found
       }
 
       categoryId = category._id; // Store the category ID
@@ -361,17 +361,14 @@ export const getMenuItems = async (req, res) => {
       .select("name price image description") // Select specific fields
       .exec();
 
-    if (!menuItems || menuItems.length === 0) {
-      return res.status(404).json({ message: "No menu items found for this restaurant." });
-    }
-
-    // Return the menu items
+    // Return menu items (empty array if none found)
     res.status(200).json(menuItems);
   } catch (error) {
     console.error("Error fetching menu items:", error); // Log error for debugging
     res.status(500).json({ message: "Server error", error });
   }
-}
+};
+
 export const getCategories = async (req, res) => {
   const { restaurantId } = req.query; // Assuming restaurantId is passed as a query parameter
 
@@ -381,10 +378,7 @@ export const getCategories = async (req, res) => {
       .select('name')
       .exec();
 
-    if (!categories || categories.length === 0) {
-      return res.status(404).json({ message: "No categories found for this restaurant." });
-    }
-
+    // Return categories (empty array if none found)
     res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
