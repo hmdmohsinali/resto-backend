@@ -55,7 +55,7 @@ router.post("/upateAdress", updateAdress);
 router.post("/toggleVacation", toggleVacationMode);
 
 router.post('/addPromotionalHours', addPromotionalHours)
-router.post('/updateOperationalHours', updateOperationalHours)
+router.post('/addOperationalHours', updateOperationalHours)
 router.get('/getOperationalHours', getOperationalHours)
 router.get('/getPromotionalHours', getPromotionalHours)
 
