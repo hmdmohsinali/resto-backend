@@ -361,7 +361,7 @@ export const getMenuItems = async (req, res) => {
       .select("name price image description") // Select specific fields
       .exec();
 
-    // Return menu items (empty array if none found)
+      
     res.status(200).json(menuItems);
   } catch (error) {
     console.error("Error fetching menu items:", error); // Log error for debugging
@@ -394,6 +394,7 @@ export const getMenuItemById = async (req, res) => {
       .populate("category", "name")
       .exec();
 
+  
     if (!menuItem) {
       return res.status(404).json({ message: "Menu item not found." });
     }
@@ -498,5 +499,27 @@ export const getRestaurantReviews = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+  }
+}
+
+export const verfiyCard= async (req, res) => {
+  try {
+      const { restaurantId, code } = req.body;
+
+      if (!restaurantId || !code) {
+          return res.status(400).json({ error: 'Restaurant ID and code are required' });
+      }
+      const promotion = await Promotion.findOne({ restaurant: restaurantId, code });
+
+      if (!promotion) {
+          return res.status(404).json({ valid: false, message: 'Invalid promotion code' });
+      }
+      res.json({
+          valid: true,
+          percentage: promotion.percentage,
+          message: 'Promotion code is valid'
+      });
+  } catch (error) {
+      res.status(500).json({ error: 'Server error' });
   }
 }

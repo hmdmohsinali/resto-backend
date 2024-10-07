@@ -16,6 +16,7 @@ import {
   deleteUser,
   getPrAndOr,
   getCategories,
+  verfiyCard,
 } from "../controllers/userController.js";
 
 
@@ -41,6 +42,7 @@ router.get('/getPromotionalAndOperationalHours/:id', getPrAndOr)
 router.post('/bookReservation' , createReservation);
 router.post('/addReview' , createReview);
 router.get('/getRestaurantReviews/:restaurantId', getRestaurantReviews)
+router.post('/verfiyCard' ,verfiyCard )
 router.get('/getHistory' , );
 router.get('/upcomingBooking' , )
 
