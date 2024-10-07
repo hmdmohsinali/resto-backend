@@ -215,6 +215,106 @@ export const getAllRestaurantsWithTags = async (req, res) => {
   }
 };
 
+// export const createReservation = async (req, res) => {
+//   const {
+//     restaurantId,
+//     guestNumber,
+//     date,
+//     time,
+//     menuItems,
+//     note,
+//     name,
+//     contactNo,
+//     promotionCard,
+//   } = req.body;
+
+//   try {
+//     const restaurant = await Restaurant.findById(restaurantId);
+//     if (!restaurant) {
+//       return res.status(404).json({ message: "Restaurant not found" });
+//     }
+
+//     // Calculate total amount
+//     let totalAmount = 0;
+//     let discountApplied = 0;
+
+//     // Fetch menu items and calculate price
+//     for (const item of menuItems) {
+//       const menuItem = await Menu.findById(item.menuItem);
+//       if (!menuItem) {
+//         return res
+//           .status(404)
+//           .json({ message: `Menu item not found: ${item.menuItem}` });
+//       }
+//       totalAmount += menuItem.price * item.quantity;
+//     }
+
+//     // Check if promotional hours apply
+//     const currentDay = new Date(date).getDay(); // Get the day of the week (0 for Sunday, etc.)
+//     const promotionalHours = restaurant.promotionalHours.find(
+//       (ph) => ph.day === currentDay
+//     );
+
+//     if (promotionalHours) {
+//       const reservationTime = new Date(`1970-01-01T${time}:00`);
+//       const promoStartTime = new Date(
+//         `1970-01-01T${promotionalHours.start}:00`
+//       );
+//       const promoEndTime = new Date(`1970-01-01T${promotionalHours.end}:00`);
+
+//       if (
+//         reservationTime >= promoStartTime &&
+//         reservationTime <= promoEndTime
+//       ) {
+//         discountApplied = promotionalHours.discountPercent;
+//         totalAmount = totalAmount * ((100 - discountApplied) / 100);
+//       }
+//     }
+
+//     // Check if a promotion card is applied
+//     if (promotionCard) {
+//       const promotion = await Promotion.findOne({
+//         code: promotionCard,
+//         restaurant: restaurantId,
+//       });
+//       if (promotion) {
+//         // Apply the promotion card discount
+//         totalAmount = totalAmount * ((100 - promotion.percentage) / 100);
+//         discountApplied += promotion.percentage; // Track total discount applied
+//       } else {
+//         return res
+//           .status(400)
+//           .json({ message: "Invalid or expired promotion card" });
+//       }
+//     }
+
+//     // Create the reservation
+//     const reservation = new Reservation({
+//       user: req.user._id,
+//       restaurant: restaurantId,
+//       guestNumber,
+//       date,
+//       time,
+//       menuItems,
+//       note,
+//       name,
+//       contactNo,
+//       totalAmount,
+//       promotionCard,
+//       discountApplied,
+//     });
+
+//     await reservation.save();
+
+//     res
+//       .status(201)
+//       .json({ message: "Reservation created successfully", reservation });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
+
+
 export const createReservation = async (req, res) => {
   const {
     restaurantId,
@@ -226,66 +326,14 @@ export const createReservation = async (req, res) => {
     name,
     contactNo,
     promotionCard,
+    totalAmount, // Receiving totalAmount from the frontend
+    discountApplied, // Receiving discountApplied from the frontend
   } = req.body;
 
   try {
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
-    }
-
-    // Calculate total amount
-    let totalAmount = 0;
-    let discountApplied = 0;
-
-    // Fetch menu items and calculate price
-    for (const item of menuItems) {
-      const menuItem = await Menu.findById(item.menuItem);
-      if (!menuItem) {
-        return res
-          .status(404)
-          .json({ message: `Menu item not found: ${item.menuItem}` });
-      }
-      totalAmount += menuItem.price * item.quantity;
-    }
-
-    // Check if promotional hours apply
-    const currentDay = new Date(date).getDay(); // Get the day of the week (0 for Sunday, etc.)
-    const promotionalHours = restaurant.promotionalHours.find(
-      (ph) => ph.day === currentDay
-    );
-
-    if (promotionalHours) {
-      const reservationTime = new Date(`1970-01-01T${time}:00`);
-      const promoStartTime = new Date(
-        `1970-01-01T${promotionalHours.start}:00`
-      );
-      const promoEndTime = new Date(`1970-01-01T${promotionalHours.end}:00`);
-
-      if (
-        reservationTime >= promoStartTime &&
-        reservationTime <= promoEndTime
-      ) {
-        discountApplied = promotionalHours.discountPercent;
-        totalAmount = totalAmount * ((100 - discountApplied) / 100);
-      }
-    }
-
-    // Check if a promotion card is applied
-    if (promotionCard) {
-      const promotion = await Promotion.findOne({
-        code: promotionCard,
-        restaurant: restaurantId,
-      });
-      if (promotion) {
-        // Apply the promotion card discount
-        totalAmount = totalAmount * ((100 - promotion.percentage) / 100);
-        discountApplied += promotion.percentage; // Track total discount applied
-      } else {
-        return res
-          .status(400)
-          .json({ message: "Invalid or expired promotion card" });
-      }
     }
 
     // Create the reservation
@@ -299,9 +347,9 @@ export const createReservation = async (req, res) => {
       note,
       name,
       contactNo,
-      totalAmount,
-      promotionCard,
-      discountApplied,
+      totalAmount, // Save the total amount directly
+      promotionCard, // Save the promotion card if provided
+      discountApplied, // Save the discount applied if provided
     });
 
     await reservation.save();
