@@ -9,6 +9,7 @@ import Review from "../models/Review.js";
 import { updateRestaurantRating } from "../utils/updateRating.js";
 import moment from "moment"
 import Category from "../models/Category.js";
+import Promotion from "../models/Promotion.js";
 dotenv.config();
 
 export const signUp = async (req, res) => {
@@ -505,6 +506,7 @@ export const getRestaurantReviews = async (req, res) => {
 export const verfiyCard= async (req, res) => {
   try {
       const { restaurantId, code } = req.body;
+      console.log(code)
 
       if (!restaurantId || !code) {
           return res.status(400).json({ error: 'Restaurant ID and code are required' });
