@@ -53,7 +53,7 @@ export const login = async (req, res) => {
 };
 
 export const updateRestaurantDetails = async (req, res) => {
-  const updates = req.body; // Contains only the fields to be updated
+  const updates = req.body; 
   const { id } = req.query;
 
   // Disallow updating username and password
@@ -109,6 +109,7 @@ export const updateRestaurantDetails = async (req, res) => {
     });
   }
 };
+
 export const deleteRestaurantImage = async (req, res) => {
   const { imageUrl } = req.body;
   const { id } = req.query;

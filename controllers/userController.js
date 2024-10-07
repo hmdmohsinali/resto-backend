@@ -317,6 +317,7 @@ export const getAllRestaurantsWithTags = async (req, res) => {
 
 export const createReservation = async (req, res) => {
   const {
+    userId,
     restaurantId,
     guestNumber,
     date,
@@ -335,10 +336,8 @@ export const createReservation = async (req, res) => {
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
-
-    // Create the reservation
     const reservation = new Reservation({
-      user: req.user._id,
+      user: userId,
       restaurant: restaurantId,
       guestNumber,
       date,
@@ -380,7 +379,7 @@ export const getMenuItems = async (req, res) => {
   const { restaurantId, categoryName } = req.query; // Get restaurantId and optional categoryName
 
   try {
-    // If categoryName is provided, find the category first
+    // categoryName is provided, find the category first
     let categoryId = null;
     if (categoryName) {
       const category = await Category.findOne({
