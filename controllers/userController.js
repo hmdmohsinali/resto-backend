@@ -454,15 +454,12 @@ export const getMenuItemById = async (req, res) => {
 };
 
 export const createReview = async (req, res) => {
-  const { restaurantId, reservationId, rating, reviewText, images } = req.body;
+  const { restaurantId, reservationId, customerId, rating, reviewText, images } = req.body;
 
   try {
     // Check if the reservation exists and is valid
     const reservation = await Reservation.findById(reservationId);
-    if (
-      !reservation ||
-      reservation.user.toString() !== req.user._id.toString()
-    ) {
+    if (!reservation || reservation.user.toString() !== customerId.toString()) {
       return res
         .status(400)
         .json({ message: "Invalid reservation or not authorized" });
@@ -477,7 +474,7 @@ export const createReview = async (req, res) => {
 
     // Create a new review
     const review = new Review({
-      user: req.user._id,
+      customer: customerId,
       restaurant: restaurantId,
       reservation: reservationId,
       rating,
@@ -496,27 +493,25 @@ export const createReview = async (req, res) => {
   }
 };
 
+
 export const getRestaurantReviews = async (req, res) => {
   const { restaurantId } = req.params;
 
   try {
     // Fetch the restaurant along with its average rating
     const restaurant = await Restaurant.findById(restaurantId).select("averageRating");
-
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found." });
     }
 
-    // Fetch all reviews for the restaurant
+    // Fetch the reviews and populate the userId field to get the user's name
     const reviews = await Review.find({ restaurant: restaurantId })
-      .populate("user", "name") // Populate user to get the name of the reviewer
-      .select("user images reviewText rating createdAt") // Select specific fields from the Review schema
+    .select("customer images reviewText rating createdAt reservation") // Select specific fields from the Review schema
+    .populate('customer', 'fullName')  // Populate the 'userId' field with the user's 'name'
       .exec();
 
-    // Calculate total reviews
     const totalReviews = reviews.length;
 
-    // Calculate the breakdown of ratings
     const ratingBreakdown = {
       1: 0,
       2: 0,
@@ -529,9 +524,8 @@ export const getRestaurantReviews = async (req, res) => {
       ratingBreakdown[review.rating]++;
     });
 
-    // Format the review data to include the user's full name, how long ago the review was made, review text, images, and rating
     const formattedReviews = reviews.map((review) => ({
-      fullName: review.user.name,
+      fullName: review.customer.fullName, // Get the user's full name from the populated 'userId' field
       daysAgo: moment(review.createdAt).fromNow(), // e.g., "2 days ago"
       reviewText: review.reviewText,
       images: review.images,
@@ -546,9 +540,10 @@ export const getRestaurantReviews = async (req, res) => {
       reviews: formattedReviews,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.log(error)
+    res.status(500).json({ message: "Server error", error: error.message });
   }
-}
+};
 
 export const verfiyCard= async (req, res) => {
   try {

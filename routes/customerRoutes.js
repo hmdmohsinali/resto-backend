@@ -46,4 +46,4 @@ router.post('/verfiyCard' ,verfiyCard )
 router.get('/getHistory' , );
 router.get('/upcomingBooking' , )
 
-export default router
+export default router;
