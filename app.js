@@ -5,6 +5,7 @@ import superAdminRoute from './routes/superAdminRoutes.js'
 import connectToDB from "./config/connectToDB.js";
 import customerRoutes from './routes/customerRoutes.js'
 import cors from 'cors'
+import fileUpload from 'express-fileupload';
 dotenv.config()
 const app= express();
 const PORT = process.env.PORT || 4000
@@ -20,6 +21,10 @@ app.use(cors(corsOptions));
 
 app.use(express.json())
 
+app.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',      
+  }));
 
 app.get('/', (req, res)=>{
     res.send("heeelllo")
