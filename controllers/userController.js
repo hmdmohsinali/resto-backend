@@ -407,7 +407,7 @@ export const getMenuItems = async (req, res) => {
 
     // Fetch menu items based on the query
     const menuItems = await Menu.find(query)
-      .select("name price image description") // Select specific fields
+      .select("name price image description visible") // Select specific fields
       .exec();
 
       
