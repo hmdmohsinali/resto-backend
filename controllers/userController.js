@@ -326,8 +326,8 @@ export const createReservation = async (req, res) => {
     name,
     contactNo,
     promotionCard,
-    totalAmount, // Receiving totalAmount from the frontend
-    discountApplied, // Receiving discountApplied from the frontend
+    totalAmount, 
+    discountApplied, 
   } = req.body;
 
   try {
