@@ -16,8 +16,6 @@ import {
   updateAdress,
   updatePax,
   updateRestaurantDetails,
-  addPromotionalHours,
-  updateOperationalHours,
   getOperationalHours,
   getPromotionalHours,
   addPromotionCode,
@@ -25,6 +23,7 @@ import {
   deletePromotionCode,
   getCompletedReservations,
   getUpcomingReservations,
+  updateRestaurantHours,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -56,8 +55,7 @@ router.get("/getAllMenuItems", getAllMenuItems);
 router.post("/upateAdress", updateAdress);
 router.post("/toggleVacation", toggleVacationMode);
 
-router.post('/addPromotionalHours', addPromotionalHours)
-router.post('/addOperationalHours', updateOperationalHours)
+router.post('/updateHours', updateRestaurantHours)
 router.get('/getOperationalHours', getOperationalHours)
 router.get('/getPromotionalHours', getPromotionalHours)
 

@@ -612,8 +612,8 @@ export const toggleVacationMode = async (req, res) => {
 };
 
 
-export const addPromotionalHours = async (req, res) => {
-  const { restaurantId, promotionalHours } = req.body;
+export const updateRestaurantHours = async (req, res) => {
+  const { restaurantId, operationalHours, promotionalHours } = req.body;
 
   try {
     const restaurant = await Restaurant.findById(restaurantId);
@@ -625,50 +625,33 @@ export const addPromotionalHours = async (req, res) => {
       });
     }
 
-    // Add the new promotional hours
-    restaurant.promotionalHours.push(promotionalHours);
-    await restaurant.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Promotional hours added successfully",
-      data: restaurant.promotionalHours,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-
-export const updateOperationalHours = async (req, res) => {
-  const { restaurantId, operationalHours } = req.body;
-
-  try {
-    const restaurant = await Restaurant.findById(restaurantId);
-
-    if (!restaurant) {
-      return res.status(404).json({
-        success: false,
-        message: "Restaurant not found",
-      });
+    // Update operational hours if provided
+    if (operationalHours && Array.isArray(operationalHours)) {
+      restaurant.operationalHours = operationalHours; // Overwrites existing operational hours with new data
     }
 
-    // Update the operational hours
-    restaurant.operationalHours = operationalHours;
+    // Add promotional hours if provided
+    if (promotionalHours && Array.isArray(promotionalHours)) {
+      // You can either overwrite or add the promotional hours depending on the requirement.
+      restaurant.promotionalHours = promotionalHours; // Overwrites existing promotional hours with new data
+    }
+
     await restaurant.save();
 
     res.status(200).json({
       success: true,
-      message: "Operational hours updated successfully",
-      data: restaurant.operationalHours,
+      message: "Restaurant hours updated successfully",
+      data: {
+        operationalHours: restaurant.operationalHours,
+        promotionalHours: restaurant.promotionalHours,
+      },
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "An error occurred while updating restaurant hours.",
+      error: error.message,
     });
   }
 };
