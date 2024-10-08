@@ -504,10 +504,10 @@ export const getRestaurantReviews = async (req, res) => {
       return res.status(404).json({ message: "Restaurant not found." });
     }
 
-    // Fetch the reviews and populate the userId field to get the user's name
+    // Fetch the reviews and populate the customer field to get the user's full name
     const reviews = await Review.find({ restaurant: restaurantId })
-    .select("customer images reviewText rating createdAt reservation") // Select specific fields from the Review schema
-    .populate('customer', 'fullName')  // Populate the 'userId' field with the user's 'name'
+      .select("customer images reviewText rating createdAt reservation") // Select specific fields from the Review schema
+      .populate('customer', 'fullName')  // Populate the 'customer' field with the user's 'fullName'
       .exec();
 
     const totalReviews = reviews.length;
@@ -525,14 +525,14 @@ export const getRestaurantReviews = async (req, res) => {
     });
 
     const formattedReviews = reviews.map((review) => ({
-      fullName: review.customer.fullName, // Get the user's full name from the populated 'userId' field
+      fullName: review.customer.fullName, // Get the user's full name from the populated 'customer' field
       daysAgo: moment(review.createdAt).fromNow(), // e.g., "2 days ago"
       reviewText: review.reviewText,
       images: review.images,
       rating: review.rating,
+      createdAt: review.createdAt
     }));
 
-    // Send the reviews, rating breakdown, total reviews, and average rating from the restaurant schema
     res.status(200).json({
       totalReviews,
       averageRating: restaurant.averageRating,
@@ -540,7 +540,7 @@ export const getRestaurantReviews = async (req, res) => {
       reviews: formattedReviews,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
