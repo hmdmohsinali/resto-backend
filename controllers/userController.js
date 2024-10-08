@@ -10,6 +10,7 @@ import { updateRestaurantRating } from "../utils/updateRating.js";
 import moment from "moment"
 import Category from "../models/Category.js";
 import Promotion from "../models/Promotion.js";
+import cloudinary from "../config/cloudinary.js";
 dotenv.config();
 
 export const signUp = async (req, res) => {
@@ -454,19 +455,32 @@ export const getMenuItemById = async (req, res) => {
 };
 
 export const createReview = async (req, res) => {
-  const { restaurantId, reservationId, customerId, rating, reviewText, images } = req.body;
+  const { restaurantId, reservationId, customerId, rating, reviewText } = req.body;
 
   try {
+    // Find the reservation
     const reservation = await Reservation.findById(reservationId);
     if (!reservation || reservation.user.toString() !== customerId.toString()) {
-      return res
-        .status(400)
-        .json({ message: "Invalid reservation or not authorized" });
+      return res.status(400).json({ message: "Invalid reservation or not authorized" });
     }
+
     if (reservation.restaurant.toString() !== restaurantId) {
-      return res
-        .status(400)
-        .json({ message: "Reservation does not match the restaurant" });
+      return res.status(400).json({ message: "Reservation does not match the restaurant" });
+    }
+
+    // Handle image uploads if provided in the request
+    let imageUrls = [];
+    if (req.files && req.files.images) {
+      // Check if multiple files or a single file
+      const images = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
+      
+      // Upload each image to Cloudinary
+      for (const image of images) {
+        const result = await cloudinary.uploader.upload(image.tempFilePath, {
+          folder: 'reviews/images',
+        });
+        imageUrls.push(result.secure_url);
+      }
     }
 
     // Create a new review
@@ -476,7 +490,7 @@ export const createReview = async (req, res) => {
       reservation: reservationId,
       rating,
       reviewText,
-      images,
+      images: imageUrls, // Store the uploaded image URLs in the review
     });
 
     await review.save();
@@ -486,10 +500,10 @@ export const createReview = async (req, res) => {
 
     res.status(201).json({ message: "Review created successfully", review });
   } catch (error) {
+    console.error("Error creating review:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 export const getRestaurantReviews = async (req, res) => {
   const { restaurantId } = req.params;

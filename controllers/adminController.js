@@ -821,3 +821,41 @@ export const getUpcomingReservations = async (req, res) => {
       res.status(500).json({ message: "An error occurred while fetching upcoming reservations.", error });
   }
 };
+
+
+export const getRestaurant =  async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const restaurant = await Restaurant.findById(id).select(
+      "name mainTag description imageSnippet imagesCover address locationLink vacationMode"
+    );
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    res.json(restaurant);
+  } catch (error) {
+    console.error("Error fetching restaurant:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+export const getTables = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    
+    // Fetch tables that match the given restaurantId
+    const tables = await Table.find({ restaurantId }).select("tableNo totalPax");
+
+    if (!tables.length) {
+      return res.status(404).json({ message: "No tables found for this restaurant" });
+    }
+
+    res.json(tables);
+  } catch (error) {
+    console.error("Error fetching tables:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}

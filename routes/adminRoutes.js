@@ -24,7 +24,10 @@ import {
   getCompletedReservations,
   getUpcomingReservations,
   updateRestaurantHours,
+  getRestaurant,
+  getTables,
 } from "../controllers/adminController.js";
+import { getRestaurantNames } from "../controllers/superAdminController.js";
 
 const router = express.Router();
 
@@ -65,6 +68,7 @@ router.get('/getAllPromotions' , getAllPromotions);
 router.delete('/deletePromotionCode' , deletePromotionCode)
 router.get('/getCompleted',getCompletedReservations );
 router.get('/getUpcoming',getUpcomingReservations );
-
+router.get("/restaurant/:id", getRestaurant)
+router.get("/tables/:restaurantId",getTables)
 
 export default router;
