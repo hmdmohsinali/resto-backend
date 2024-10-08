@@ -6,6 +6,7 @@ import Category from "../models/Category.js";
 import Promotion from "../models/Promotion.js";
 import Menu from "../models/Menu.js";
 import cloudinary from "../config/cloudinary.js";
+import Reservation from "../models/Reservations.js";
 
 export const signUp = async (req, res) => {
   const { name, username, password } = req.body;
@@ -790,3 +791,29 @@ export const deletePromotionCode = async (req, res) => {
     });
   }
 };
+
+
+export const getHistory = async (req, res) => {
+  try {
+      const restaurantId = req.query.restaurantId; // assuming you're passing the user ID as a query parameter
+      const completed = req.query.completed; // filter by completion status, 'true' or 'false'
+      
+      if (!restaurantId) {
+          return res.status(400).json({ message: "User ID is required." });
+
+      }
+
+      const reservations = await Reservation.find({ 
+          restaurant: restaurantId,
+          completed: completed
+      })
+          .populate('menuItems.menuItem', 'name')
+      .populate('user', 'name contactNo')
+      .sort({ date: -1 }) // Sort by date in descending order (newest first)
+
+      res.status(200).json(reservations);
+  } catch (error) {
+    console.log(error)
+      res.status(500).json({ message: "An error occurred while fetching reservations.", error });
+  }
+}

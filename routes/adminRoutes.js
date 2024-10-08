@@ -23,6 +23,7 @@ import {
   addPromotionCode,
   getAllPromotions,
   deletePromotionCode,
+  getHistory,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -63,6 +64,7 @@ router.get('/getPromotionalHours', getPromotionalHours)
 router.post('/addPromotionCode' , addPromotionCode);
 router.get('/getAllPromotions' , getAllPromotions);
 router.delete('/deletePromotionCode' , deletePromotionCode)
+router.get('/getHistory',getHistory );
 
 
 export default router;
