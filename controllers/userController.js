@@ -457,15 +457,12 @@ export const createReview = async (req, res) => {
   const { restaurantId, reservationId, customerId, rating, reviewText, images } = req.body;
 
   try {
-    // Check if the reservation exists and is valid
     const reservation = await Reservation.findById(reservationId);
     if (!reservation || reservation.user.toString() !== customerId.toString()) {
       return res
         .status(400)
         .json({ message: "Invalid reservation or not authorized" });
     }
-
-    // Ensure the reservation belongs to the restaurant
     if (reservation.restaurant.toString() !== restaurantId) {
       return res
         .status(400)
@@ -582,7 +579,7 @@ export const getHistory = async (req, res) => {
           user: userId,
           completed: completed
       })
-      .populate('restaurant', 'name') // populating restaurant data (optional)
+      .populate('restaurant', 'name imageSnippet') // populating restaurant data (optional)
       .populate('menuItems.menuItem', 'name price description image') // populating menu items data (optional)
       .sort({ date: -1 }) // Sort by date in descending order (newest first)
 
