@@ -23,7 +23,8 @@ import {
   addPromotionCode,
   getAllPromotions,
   deletePromotionCode,
-  getHistory,
+  getCompletedReservations,
+  getUpcomingReservations,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -64,7 +65,8 @@ router.get('/getPromotionalHours', getPromotionalHours)
 router.post('/addPromotionCode' , addPromotionCode);
 router.get('/getAllPromotions' , getAllPromotions);
 router.delete('/deletePromotionCode' , deletePromotionCode)
-router.get('/getHistory',getHistory );
+router.get('/getCompleted',getCompletedReservations );
+router.get('/getUpcoming',getUpcomingReservations );
 
 
 export default router;
