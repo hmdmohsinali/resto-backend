@@ -807,7 +807,7 @@ export const getHistory = async (req, res) => {
           restaurant: restaurantId,
           completed: completed
       })
-          .populate('menuItems.menuItem', 'name')
+      .populate('menuItems.menuItem', 'name')
       .populate('user', 'name contactNo')
       .sort({ date: -1 }) // Sort by date in descending order (newest first)
 

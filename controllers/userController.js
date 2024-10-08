@@ -583,7 +583,7 @@ export const getHistory = async (req, res) => {
           completed: completed
       })
       .populate('restaurant', 'name') // populating restaurant data (optional)
-      .populate('menuItems.menuItem', 'name') // populating menu items data (optional)
+      .populate('menuItems.menuItem', 'name price description image') // populating menu items data (optional)
       .sort({ date: -1 }) // Sort by date in descending order (newest first)
 
       res.status(200).json(reservations);
