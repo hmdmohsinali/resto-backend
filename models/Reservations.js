@@ -36,8 +36,8 @@ const reservationSchema = new mongoose.Schema({
             min: 1
         },
         selectedOptions: [{
-            name: { type: String, required: true },  // Name of the option group (e.g., "Size")
-            value: { type: String, required: true }   // Selected value (e.g., "Large")
+            name: { type: String, required: true },  
+            value: { type: String, required: true }   
         }]
     }],
     note: {
@@ -55,14 +55,14 @@ const reservationSchema = new mongoose.Schema({
         trim: true
     },
     totalAmount: {
-        type: Number, // Total amount after discounts
+        type: Number, 
         required: true
     },
     promotionCard: {
-        type: String, // Code of the promotion card used (if any)
+        type: String, 
     },
     discountApplied: {
-        type: Number, // Total discount applied (in percentage or amount)
+        type: Number, 
         default: 0
     },
     completed: {
@@ -71,7 +71,7 @@ const reservationSchema = new mongoose.Schema({
     },
     isRated: {
         type: Boolean,
-        default: false // Track if the user has rated this reservation
+        default: false 
     }
 }, { timestamps: true });
 

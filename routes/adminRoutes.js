@@ -45,6 +45,7 @@ router.post("/addTable", addTable);
 router.put("/updateTable", updatePax);
 
 router.post("/addPromotionImages", addPromotionalImages);
+
 router.post("/deletePromotionImage", deletePromotionalImage);
 
 router.post("/addCategories", addCategory);

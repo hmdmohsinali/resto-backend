@@ -7,7 +7,7 @@ const promotionSliderSchema = new mongoose.Schema({
         required: [true, "Restaurant ID is required"]
     },
     images: {
-        type: [String], // Array of image URLs
+        type: [String], 
         required: [true, "At least one image URL is required"]
     }
 });
