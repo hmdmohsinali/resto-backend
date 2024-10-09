@@ -870,7 +870,7 @@ export const getReservationDetails = async (req, res) => {
         path: 'menuItems.menuItem',
         select: 'name options', 
       })
-      .select('guestNumber date note menuItems contactNo name') // Select relevant fields from the reservation
+      .select('guestNumber date note menuItems contactNo name completed') // Select relevant fields from the reservation
       .exec();
 
     if (!reservation) {
@@ -880,6 +880,7 @@ export const getReservationDetails = async (req, res) => {
     const reservationDetails = {
       name:reservation.name,
       contactNo: reservation.contactNo,
+      completed : reservation.completed,
       orderDate: reservation.date, // Reservation date
       note: reservation.note, // Reservation note
       pax: reservation.guestNumber, // Total guests (pax)
