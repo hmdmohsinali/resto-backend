@@ -859,3 +859,45 @@ export const getTables = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+
+export const getReservationDetails = async (req, res) => {
+  const { reservationId } = req.params;
+
+  try {
+    // Find the reservation by its ID and populate the necessary fields
+    const reservation = await Reservation.findById(reservationId)
+      .populate('user', 'name contactNo') // Populating user details (name and contact number)
+      .populate({
+        path: 'menuItems.menuItem',
+        select: 'name options', // Populating menu item details (name and options)
+      })
+      .select('guestNumber date note menuItems') // Select relevant fields from the reservation
+      .exec();
+
+    // If no reservation is found, return a 404 error
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
+
+    // Format the response to include only the required fields
+    const reservationDetails = {
+      name: reservation.user.name, // User name
+      contact: reservation.user.contactNo, // User contact number
+      orderDate: reservation.date, // Reservation date
+      note: reservation.note, // Reservation note
+      pax: reservation.guestNumber, // Total guests (pax)
+      menuItems: reservation.menuItems.map(item => ({
+        name: item.menuItem.name, // Menu item name
+        quantity: item.quantity, // Quantity of the menu item
+        options: item.menuItem.options // Menu item options
+      }))
+    };
+
+    // Return the formatted reservation details
+    res.status(200).json(reservationDetails);
+  } catch (error) {
+    console.error("Error fetching reservation details:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};

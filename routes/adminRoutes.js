@@ -26,8 +26,8 @@ import {
   updateRestaurantHours,
   getRestaurant,
   getTables,
+  getReservationDetails,
 } from "../controllers/adminController.js";
-import { getRestaurantNames } from "../controllers/superAdminController.js";
 
 const router = express.Router();
 
@@ -58,17 +58,17 @@ router.get("/getAllMenuItems", getAllMenuItems);
 router.post("/upateAdress", updateAdress);
 router.post("/toggleVacation", toggleVacationMode);
 
-router.post('/updateHours', updateRestaurantHours)
-router.get('/getOperationalHours', getOperationalHours)
-router.get('/getPromotionalHours', getPromotionalHours)
+router.post("/updateHours", updateRestaurantHours);
+router.get("/getOperationalHours", getOperationalHours);
+router.get("/getPromotionalHours", getPromotionalHours);
 
-
-router.post('/addPromotionCode' , addPromotionCode);
-router.get('/getAllPromotions' , getAllPromotions);
-router.delete('/deletePromotionCode' , deletePromotionCode)
-router.get('/getCompleted',getCompletedReservations );
-router.get('/getUpcoming',getUpcomingReservations );
-router.get("/restaurant/:id", getRestaurant)
-router.get("/tables/:restaurantId",getTables)
+router.post("/addPromotionCode", addPromotionCode);
+router.get("/getAllPromotions", getAllPromotions);
+router.delete("/deletePromotionCode", deletePromotionCode);
+router.get("/getCompleted", getCompletedReservations);
+router.get("/getUpcoming", getUpcomingReservations);
+router.get("/restaurant/:id", getRestaurant);
+router.get("/tables/:restaurantId", getTables);
+router.get("/getSingleReservation/:reservationId", getReservationDetails);
 
 export default router;
