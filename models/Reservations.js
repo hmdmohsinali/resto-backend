@@ -1,5 +1,3 @@
-import mongoose from "mongoose";
-
 const reservationSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -34,7 +32,11 @@ const reservationSchema = new mongoose.Schema({
             type: Number,
             required: true,
             min: 1
-        }
+        },
+        selectedOptions: [{
+            name: { type: String, required: true },  // Name of the option group (e.g., "Size")
+            value: { type: String, required: true }   // Selected value (e.g., "Large")
+        }]
     }],
     note: {
         type: String,
@@ -61,12 +63,14 @@ const reservationSchema = new mongoose.Schema({
         type: Number, // Total discount applied (in percentage or amount)
         default: 0
     },
-    completed:{
+    completed: {
         type: Boolean,
         default: false
+    },
+    isRated: {
+        type: Boolean,
+        default: false // Track if the user has rated this reservation
     }
 }, { timestamps: true });
 
 const Reservation = mongoose.model('Reservation', reservationSchema);
-
-export default Reservation;

@@ -206,8 +206,8 @@ export const getUserDetails = async (req, res) => {
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
     const restaurants = await Restaurant.find({}).select(
-      "averageRating mainTag name address imageSnippet imagesCover"
-    ); // Select only the fields you want
+      "averageRating mainTag name address imageSnippet imagesCover vacationMode"
+    );
 
     return res.status(200).json(restaurants);
   } catch (error) {
@@ -323,7 +323,7 @@ export const createReservation = async (req, res) => {
     guestNumber,
     date,
     time,
-    menuItems,
+    menuItems, // This will include selected options now
     note,
     name,
     contactNo,
@@ -337,13 +337,40 @@ export const createReservation = async (req, res) => {
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
+
+    // Validate the menuItems and options before saving
+    const validatedMenuItems = await Promise.all(
+      menuItems.map(async (item) => {
+        const menuItem = await Menu.findById(item.menuItem);
+        if (!menuItem) {
+          throw new Error(`Menu item with ID ${item.menuItem} not found`);
+        }
+
+        // Validate the selected options
+        const selectedOptions = item.selectedOptions || [];
+        selectedOptions.forEach((option) => {
+          const menuOption = menuItem.options.find((opt) => opt.name === option.name);
+          if (!menuOption || !menuOption.values.includes(option.value)) {
+            throw new Error(`Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`);
+          }
+        });
+
+        return {
+          menuItem: item.menuItem,
+          quantity: item.quantity,
+          selectedOptions: selectedOptions,
+        };
+      })
+    );
+
+    // Create the reservation with validated menu items
     const reservation = new Reservation({
       user: userId,
       restaurant: restaurantId,
       guestNumber,
       date,
       time,
-      menuItems,
+      menuItems: validatedMenuItems,
       note,
       name,
       contactNo,
@@ -358,7 +385,7 @@ export const createReservation = async (req, res) => {
       .status(201)
       .json({ message: "Reservation created successfully", reservation });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -419,22 +446,22 @@ export const getMenuItems = async (req, res) => {
 };
 
 export const getCategories = async (req, res) => {
-  const { restaurantId } = req.query; // Assuming restaurantId is passed as a query parameter
+  const { restaurantId } = req.query; 
 
   try {
-    // Find categories by restaurant ID and select only the name field
-    const categories = await Category.find({ restaurant: restaurantId })
-      .select('name')
-      .exec();
+    const [categories, tables] = await Promise.all([
+      Category.find({ restaurant: restaurantId }).select('name').exec(),
+      Table.find({ restaurantId }).select('availablePax').exec()
+    ]);
 
-    // Return categories (empty array if none found)
-    res.status(200).json(categories);
+    const totalAvailablePax = tables.reduce((sum, table) => sum + table.availablePax, 0);
+
+    res.status(200).json({ categories, totalAvailablePax });
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Error fetching categories and pax:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 export const getMenuItemById = async (req, res) => {
   const { menuItemId } = req.query;
 
@@ -453,6 +480,33 @@ export const getMenuItemById = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+export const hasUserRated = async (req, res) => {
+  const { userId, reservationId } = req.query;
+
+  try {
+    // Find the reservation by reservationId and userId
+    const reservation = await Reservation.findOne({
+      _id: reservationId,
+      user: userId
+    });
+
+    // If the reservation does not exist or doesn't belong to the user
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
+
+    // Check if the reservation has been rated
+    const hasRated = reservation.isRated;
+
+    // Return true or false based on whether the user has rated
+    res.status(200).json({ hasRated });
+  } catch (error) {
+    console.error("Error checking rating status:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 
 export const createReview = async (req, res) => {
   const { restaurantId, reservationId, customerId, rating, reviewText } = req.body;

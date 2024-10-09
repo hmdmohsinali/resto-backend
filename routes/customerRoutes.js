@@ -18,6 +18,7 @@ import {
   getCategories,
   verfiyCard,
   getHistory,
+  hasUserRated,
 } from "../controllers/userController.js";
 
 
@@ -46,5 +47,6 @@ router.get('/getRestaurantReviews/:restaurantId', getRestaurantReviews)
 router.post('/verfiyCard',verfiyCard )
 router.get('/getHistory',getHistory );
 router.get('/upcomingBooking', )
+router.get('/hasRated' , hasUserRated)
 
 export default router;
