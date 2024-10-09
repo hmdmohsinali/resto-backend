@@ -483,25 +483,20 @@ export const getMenuItemById = async (req, res) => {
 };
 
 export const hasUserRated = async (req, res) => {
-  const { userId, reservationId } = req.query;
+  const { userId, reservationId  } = req.query;
 
   try {
-    // Find the reservation by reservationId and userId
-    const reservation = await Reservation.findOne({
-      _id: reservationId,
-      user: userId
+    const review = await Review.findOne({
+      customer: userId,
+      reservation: reservationId
     });
 
-    // If the reservation does not exist or doesn't belong to the user
-    if (!reservation) {
-      return res.status(404).json({ message: "Reservation not found" });
+    if (!review) {
+      return res.status(200).json(false);
     }
 
-    // Check if the reservation has been rated
-    const hasRated = reservation.isRated;
-
     // Return true or false based on whether the user has rated
-    res.status(200).json({ hasRated });
+    res.status(200).json(true);
   } catch (error) {
     console.error("Error checking rating status:", error);
     res.status(500).json({ message: "Server error", error });
@@ -545,9 +540,10 @@ export const createReview = async (req, res) => {
       reservation: reservationId,
       rating,
       reviewText,
-      images: imageUrls,
-      isRated : true
+      images: imageUrls
+  
     });
+    console.log(review)
 
     await review.save();
 
