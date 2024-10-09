@@ -271,18 +271,31 @@ export const updatePax = async (req, res) => {
 };
 
 export const addPromotionalImages = async (req, res) => {
-  const { restaurantId, images } = req.body;
+  const { restaurantId } = req.body;
+  const { files } = req; // Assuming images are uploaded via multipart form-data
 
   try {
     let slider = await PromotionSlider.findOne({ restaurantId });
 
-    // If no slider exists for the restaurant, create a new one
     if (!slider) {
-      slider = new PromotionSlider({ restaurantId, images });
-    } else {
-      // If a slider exists, append new images to the array
-      slider.images = slider.images.concat(images);
+      slider = new PromotionSlider({ restaurantId, images: [] });
     }
+
+    let uploadedImages = [];
+
+    if (files && files.images) {
+      const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
+
+      for (const imageFile of imageFiles) {
+        const result = await cloudinary.uploader.upload(imageFile.tempFilePath, {
+          folder: `restaurants/${restaurantId}/promotions`, // Store images in a folder per restaurant
+        });
+
+        uploadedImages.push(result.secure_url);
+      }
+    }
+
+    slider.images = slider.images.concat(uploadedImages);
 
     await slider.save();
 
@@ -293,6 +306,33 @@ export const addPromotionalImages = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+
+export const getPromotionalImages = async (req, res) => {
+  const { restaurantId } = req.params; // Get restaurantId from the request parameters
+
+  try {
+    // Find the promotional slider for the specified restaurant
+    const slider = await PromotionSlider.findOne({ restaurantId });
+
+    if (!slider) {
+      return res.status(404).json({
+        success: false,
+        message: "No promotional images found for this restaurant",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: slider.images, // Return the array of promotional images
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
       error: error.message,
     });

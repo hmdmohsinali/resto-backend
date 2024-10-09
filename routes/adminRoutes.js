@@ -28,6 +28,7 @@ import {
   getTables,
   getReservationDetails,
   toggleReservationCompleted,
+  getPromotionalImages,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -46,7 +47,7 @@ router.post("/addTable", addTable);
 router.put("/updateTable", updatePax);
 
 router.post("/addPromotionImages", addPromotionalImages);
-
+router.get('/getPromotioanlImages'  ,getPromotionalImages )
 router.post("/deletePromotionImage", deletePromotionalImage);
 
 router.post("/addCategories", addCategory);
@@ -73,4 +74,6 @@ router.get("/restaurant/:id", getRestaurant);
 router.get("/tables/:restaurantId", getTables);
 router.get("/getSingleReservation/:reservationId", getReservationDetails);
 router.post('/toggleComplete/:reservationId', toggleReservationCompleted)
+
+
 export default router;
