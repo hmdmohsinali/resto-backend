@@ -142,19 +142,23 @@ export const updateRestaurantDetails = async (req, res) => {
       imageSnippetUrl = imageSnippetResult.secure_url;
     }
 
-    let imagesCoverUrl = restaurant.imagesCover;
+    let imagesCoverUrls = restaurant.imagesCover || [];
     if (req.files && req.files.imagesCover) {
-      const imagesCoverResult = await cloudinary.uploader.upload(req.files.imagesCover.tempFilePath, {
-        folder: 'restaurants/imagesCover',
-      });
-      imagesCoverUrl = imagesCoverResult.secure_url;
+      const imageFiles = Array.isArray(req.files.imagesCover) ? req.files.imagesCover : [req.files.imagesCover];
+
+      for (const imageFile of imageFiles) {
+        const imagesCoverResult = await cloudinary.uploader.upload(imageFile.tempFilePath, {
+          folder: 'restaurants/imagesCover',
+        });
+        imagesCoverUrls.push(imagesCoverResult.secure_url); // Append new images to the array
+      }
     }
 
     const updatedFields = {
       name: updates.name || restaurant.name,
       mainTag: updates.mainTag || restaurant.mainTag,
       imageSnippet: imageSnippetUrl,
-      imagesCover: imagesCoverUrl,
+      imagesCover: imagesCoverUrls,
       description: updates.description || restaurant.description,
       address: updates.address || restaurant.address,
       locationLink: updates.locationLink || restaurant.locationLink,
