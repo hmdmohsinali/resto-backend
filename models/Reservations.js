@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const reservationSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -74,3 +76,6 @@ const reservationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Reservation = mongoose.model('Reservation', reservationSchema);
+
+
+export default Reservation;
