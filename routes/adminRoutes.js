@@ -27,6 +27,7 @@ import {
   getRestaurant,
   getTables,
   getReservationDetails,
+  toggleReservationCompleted,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -71,5 +72,5 @@ router.get("/getUpcoming", getUpcomingReservations);
 router.get("/restaurant/:id", getRestaurant);
 router.get("/tables/:restaurantId", getTables);
 router.get("/getSingleReservation/:reservationId", getReservationDetails);
-
+router.post('/toggleComplete/:reservationId', toggleReservationCompleted)
 export default router;

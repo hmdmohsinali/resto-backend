@@ -897,3 +897,50 @@ export const getReservationDetails = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+
+export const toggleReservationCompleted = async (req, res) => {
+  const { reservationId } = req.params;
+
+  try {
+    const reservation = await Reservation.findById(reservationId);
+
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
+
+    if (reservation.completed) {
+      return res.status(400).json({ message: "Reservation is already completed. Status cannot be reverted." });
+    }
+
+    reservation.completed = true;
+
+    const tables = await Table.find({ restaurantId: reservation.restaurant });
+    const table = tables.find(t => t.totalPax >= reservation.guestNumber);
+
+    if (table) {
+      table.availablePax += reservation.guestNumber;
+
+      // Ensure availablePax does not exceed totalPax
+      if (table.availablePax > table.totalPax) {
+        table.availablePax = table.totalPax;
+      }
+
+      // Save the updated table
+      await table.save();
+    }
+
+    // Save the updated reservation
+    await reservation.save();
+
+    // Return the updated reservation
+    res.status(200).json({
+      message: "Reservation marked as completed successfully",
+      completed: reservation.completed,
+      reservation
+    });
+  } catch (error) {
+    console.error("Error updating reservation:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
