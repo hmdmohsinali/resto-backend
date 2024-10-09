@@ -272,7 +272,7 @@ export const updatePax = async (req, res) => {
 
 export const addPromotionalImages = async (req, res) => {
   const { restaurantId } = req.body;
-  const { files } = req; // Assuming images are uploaded via multipart form-data
+  const { files } = req; 
 
   try {
     let slider = await PromotionSlider.findOne({ restaurantId });
@@ -287,14 +287,28 @@ export const addPromotionalImages = async (req, res) => {
       const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
 
       for (const imageFile of imageFiles) {
+        const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validMimeTypes.includes(imageFile.mimetype)) {
+          return res.status(400).json({
+            success: false,
+            message: "Only image files are allowed.",
+          });
+        }
+
         const result = await cloudinary.uploader.upload(imageFile.tempFilePath, {
           folder: `restaurants/${restaurantId}/promotions`, // Store images in a folder per restaurant
         });
 
         uploadedImages.push(result.secure_url);
       }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "No image files provided.",
+      });
     }
 
+    // Add the newly uploaded images to the existing ones
     slider.images = slider.images.concat(uploadedImages);
 
     await slider.save();
@@ -311,7 +325,6 @@ export const addPromotionalImages = async (req, res) => {
     });
   }
 };
-
 
 export const getPromotionalImages = async (req, res) => {
   const { restaurantId } = req.params; // Get restaurantId from the request parameters
