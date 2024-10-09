@@ -29,6 +29,7 @@ import {
   getReservationDetails,
   toggleReservationCompleted,
   getPromotionalImages,
+  deleteTable,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -74,6 +75,6 @@ router.get("/restaurant/:id", getRestaurant);
 router.get("/tables/:restaurantId", getTables);
 router.get("/getSingleReservation/:reservationId", getReservationDetails);
 router.post('/toggleComplete/:reservationId', toggleReservationCompleted)
-
+router.delete('/deleteTable' , deleteTable)
 
 export default router;

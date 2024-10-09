@@ -244,17 +244,27 @@ export const addTable = async (req, res) => {
 };
 
 export const updatePax = async (req, res) => {
-  const { restaurantId, tableNo } = req.query; // Get restaurantId and tableNo from query parameters
+  const { restaurantId, tableId } = req.query; // Get restaurantId and tableId from query parameters
   const { totalPax } = req.body; // Get the new pax value from the request body
 
   try {
-    const table = await Table.findOne({ restaurantId, tableNo });
+    // Find the table by tableId and restaurantId
+    const table = await Table.findOne({ _id: tableId, restaurantId });
 
     if (!table) {
       return res.status(404).json({
         success: false,
-        message: "Table not found",
+        message: "Table not found or does not belong to this restaurant",
       });
+    }
+
+    // Update totalPax and adjust availablePax only if it hasn't been partially occupied
+    if (table.availablePax === table.totalPax) {
+      // If availablePax is at max, set it equal to new totalPax
+      table.availablePax = totalPax;
+    } else if (totalPax < table.availablePax) {
+      // If the new totalPax is less than current availablePax, adjust accordingly
+      table.availablePax = totalPax;
     }
 
     // Update totalPax
@@ -273,6 +283,7 @@ export const updatePax = async (req, res) => {
     });
   }
 };
+
 
 export const addPromotionalImages = async (req, res) => {
   const { restaurantId } = req.body;
@@ -999,5 +1010,32 @@ export const toggleReservationCompleted = async (req, res) => {
   } catch (error) {
     console.error("Error updating reservation:", error);
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const deleteTable = async (req, res) => {
+  const { tableId } = req.query; // Get the tableId from query parameters
+
+  try {
+    // Find the table by ID and delete it
+    const deletedTable = await Table.findByIdAndDelete(tableId);
+
+    if (!deletedTable) {
+      return res.status(404).json({
+        success: false,
+        message: "Table not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Table deleted successfully",
+      data: deletedTable, // Optionally return the deleted table details
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 };
