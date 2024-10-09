@@ -545,7 +545,8 @@ export const createReview = async (req, res) => {
       reservation: reservationId,
       rating,
       reviewText,
-      images: imageUrls, // Store the uploaded image URLs in the review
+      images: imageUrls,
+      isRated : true
     });
 
     await review.save();
