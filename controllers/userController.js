@@ -11,6 +11,7 @@ import moment from "moment"
 import Category from "../models/Category.js";
 import Promotion from "../models/Promotion.js";
 import cloudinary from "../config/cloudinary.js";
+import Table from "../models/Table.js";
 dotenv.config();
 
 export const signUp = async (req, res) => {
