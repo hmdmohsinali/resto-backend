@@ -47,7 +47,7 @@ router.post("/addTable", addTable);
 router.put("/updateTable", updatePax);
 
 router.post("/addPromotionImages", addPromotionalImages);
-router.get('/getPromotioanlImages'  ,getPromotionalImages )
+router.get('/getPromotioanlImages/:restaurantId'  ,getPromotionalImages )
 router.post("/deletePromotionImage", deletePromotionalImage);
 
 router.post("/addCategories", addCategory);
