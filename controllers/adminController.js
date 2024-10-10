@@ -244,8 +244,8 @@ export const addTable = async (req, res) => {
 };
 
 export const updatePax = async (req, res) => {
-  const { restaurantId, tableId } = req.query; // Get restaurantId and tableId from query parameters
-  const { totalPax } = req.body; // Get the new pax value from the request body
+  const { restaurantId, tableId } = req.query; 
+  const { totalPax } = req.body;
 
   try {
     // Find the table by tableId and restaurantId
@@ -258,12 +258,9 @@ export const updatePax = async (req, res) => {
       });
     }
 
-    // Update totalPax and adjust availablePax only if it hasn't been partially occupied
     if (table.availablePax === table.totalPax) {
-      // If availablePax is at max, set it equal to new totalPax
       table.availablePax = totalPax;
     } else if (totalPax < table.availablePax) {
-      // If the new totalPax is less than current availablePax, adjust accordingly
       table.availablePax = totalPax;
     }
 
@@ -282,9 +279,7 @@ export const updatePax = async (req, res) => {
       error: error.message,
     });
   }
-};
-
-
+}
 export const addPromotionalImages = async (req, res) => {
   const { restaurantId } = req.body;
   const { files } = req; 

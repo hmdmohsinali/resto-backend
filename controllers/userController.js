@@ -121,7 +121,7 @@ export const verifyOtp = async (req, res) => {
   };
 
 
-  export const changePassword = async (req, res) => {
+export const changePassword = async (req, res) => {
     const { newPassword, userId } = req.body;
   
     try {
@@ -143,7 +143,7 @@ export const verifyOtp = async (req, res) => {
     }
   };
 
-  export const editProfile = async (req, res) => {
+export const editProfile = async (req, res) => {
     const { userId, fullName, address, phoneNumber } = req.body;
   
     try {
