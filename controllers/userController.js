@@ -42,8 +42,7 @@ export const signUp = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log("Request body:", req.body); // Check if req.body is coming through
-
+  console.log("Request body:", req.body);
   try {
     const customer = await Customer.findOne({ email });
     if (!customer) {
