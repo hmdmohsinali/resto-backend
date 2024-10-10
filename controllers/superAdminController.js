@@ -115,7 +115,7 @@ export const deleteRestaurant = async (req, res) => {
         return res.status(404).json({ msg: "Restaurant not found" });
       }
   
-      restaurant.password = newPassword; // Update the password field
+      restaurant.password = newPassword; 
       await restaurant.save();
   
       return res.status(200).json({ msg: "Password updated successfully" });
