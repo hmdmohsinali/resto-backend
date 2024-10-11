@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { transporter } from "../utils/transpoter.js";
 import SuperAdmin from "../models/SuperAdmin.js";
 import Restaurant from "../models/Restaurant.js";
+import Points from "../models/Points.js";
 
 dotenv.config();
 
