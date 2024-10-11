@@ -687,7 +687,7 @@ export const topup = async (req,res) => {
   
   try {
     
-    let user = await User.findById(userId);
+    let user = await Customer.findById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
