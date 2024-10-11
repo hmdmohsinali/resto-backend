@@ -105,7 +105,7 @@ export const deleteRestaurant = async (req, res) => {
     }
   };
 
-  export const changeRestaurantPassword = async (req, res) => {
+export const changeRestaurantPassword = async (req, res) => {
     const { id } = req.query;
     const { newPassword } = req.body;
   
@@ -123,5 +123,45 @@ export const deleteRestaurant = async (req, res) => {
       console.log(error);
       return res.status(500).json({ error: "Server error" });
     }
-  };
+};
+
+export const pointsManagement = async (req, res) => {
+  const { pointsPerTopup, pointEqualTo } = req.body;
+
+  try {
+    let points = await Points.findOne();
+
+    if (points) {
+      points.pointsPerTopup = pointsPerTopup;
+      points.pointEqualTo = pointEqualTo;
+
+      points = await points.save();
+      return res.status(200).json({
+        success: true,
+        message: "Points updated successfully",
+        points,
+      });
+    } else {
+      points = new Points({
+        pointsPerTopup,
+        pointEqualTo,
+      });
+
+      await points.save();
+      return res.status(201).json({
+        success: true,
+        message: "Points created successfully",
+        points,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+
 

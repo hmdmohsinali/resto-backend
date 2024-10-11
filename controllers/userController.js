@@ -117,7 +117,7 @@ export const verifyOtp = async (req, res) => {
     } catch (error) {
       return res.status(500).json({ error: "Server error" });
     }
-  };
+};
 
 
 export const changePassword = async (req, res) => {
@@ -140,7 +140,7 @@ export const changePassword = async (req, res) => {
     } catch (error) {
       return res.status(500).json({ error: "Server error" });
     }
-  };
+};
 
 export const editProfile = async (req, res) => {
     const { userId, fullName, address, phoneNumber } = req.body;
@@ -167,7 +167,7 @@ export const editProfile = async (req, res) => {
     } catch (error) {
       return res.status(500).json({ error: "Server error" });
     }
-  };
+};
 
 export const deleteUser = async (req, res) => {
     const { userId } = req.params; 
@@ -201,7 +201,7 @@ export const getUserDetails = async (req, res) => {
     } catch (error) {
       return res.status(500).json({ error: "Server error" });
     }
-  };
+};
 
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
@@ -653,3 +653,27 @@ export const getHistory = async (req, res) => {
       res.status(500).json({ message: "An error occurred while fetching reservations.", error });
   }
 }
+
+export const getPoints = async (req, res) => {
+  try {
+    const points = await Points.findOne();
+
+    if (!points) {
+      return res.status(404).json({
+        success: false,
+        message: "Points configuration not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      points,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
