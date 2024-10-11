@@ -13,6 +13,7 @@ import Promotion from "../models/Promotion.js";
 import cloudinary from "../config/cloudinary.js";
 import Table from "../models/Table.js";
 import Points from "../models/Points.js";
+import Transaction from "../models/Transaction.js";
 dotenv.config();
 
 export const signUp = async (req, res) => {
@@ -678,3 +679,46 @@ export const getPoints = async (req, res) => {
     });
   }
 };
+
+export const topup = async (req,res) => {
+
+  const {userId , amount , transactionId} = req.body
+  
+  
+  try {
+    
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const transaction = new Transaction({
+      userId,
+      amount,
+      transactionId,
+      status: 'success'
+    });
+    await transaction.save();
+
+    
+    user.balance += amount;
+    await user.save();
+
+    const pointsToAdd = Math.floor(amount / 10);
+    if (pointsToAdd > 0) {
+      user.points += pointsToAdd;
+      await user.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Wallet topped up and points added",
+      walletBalance: user.balance,
+      points: user.points,
+      transactionId: transaction.transactionId,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}

@@ -37,7 +37,15 @@ const customerSchema = new mongoose.Schema({
 otpVerified: {
   type: Boolean,
   default: false, 
-}
+},
+balance: {
+  type: Number,
+  default: 0
+},
+points: {
+  type: Number,
+  default: 0
+},
 });
 
 customerSchema.pre("save", async function (next) {
