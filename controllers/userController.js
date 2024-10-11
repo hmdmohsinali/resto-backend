@@ -722,3 +722,19 @@ export const topup = async (req,res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 }
+
+export const getTransactionHistory = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const transactions = await Transaction.find({ userId });
+
+    res.status(200).json({
+      success: true,
+      transactions,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

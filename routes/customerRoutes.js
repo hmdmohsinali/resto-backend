@@ -21,6 +21,7 @@ import {
   hasUserRated,
   getPoints,
   topup,
+  getTransactionHistory,
 } from "../controllers/userController.js";
 
 
@@ -50,6 +51,7 @@ router.post('/verfiyCard',verfiyCard )
 router.get('/getHistory',getHistory );
 router.get('/hasRated' , hasUserRated);
 router.get('/getPoints' ,  getPoints);
-router.post('/topup', topup)
+router.post('/topup', topup);
+router.get('/transactionHistory' , getTransactionHistory)
 
 export default router;
