@@ -6,6 +6,7 @@ import connectToDB from "./config/connectToDB.js";
 import customerRoutes from './routes/customerRoutes.js'
 import cors from 'cors'
 import fileUpload from 'express-fileupload';
+import cookieParser from 'cookie-parser';
 dotenv.config()
 const app= express();
 const PORT = process.env.PORT || 4000
@@ -17,7 +18,7 @@ const corsOptions = {
   };
   
 app.use(cors(corsOptions));
-
+app.use(cookieParser());
 
 app.use(express.json())
 
