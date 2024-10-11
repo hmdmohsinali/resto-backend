@@ -58,13 +58,15 @@ export const login = async (req, res) => {
     // Generate token
     const token = generateToken(customer);
 
-    // Send the token in an HTTP-only cookie
+    
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',  // Use HTTPS in production
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000,  // 1 day in milliseconds
     });
+
+   
 
     return res.status(200).json({ msg: 'Login successful' });
   } catch (error) {
