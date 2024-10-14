@@ -325,22 +325,34 @@ export const createReservation = async (req, res) => {
     guestNumber,
     date,
     time,
-    menuItems, // This will include selected options now
+    menuItems,
     note,
     name,
     contactNo,
     promotionCard,
-    totalAmount, 
-    discountApplied, 
+    totalAmount,
+    points, 
+    discountApplied,
   } = req.body;
 
   try {
+    const user = await Customer.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (points > user.points) {
+      return res.status(400).json({ message: "Insufficient points" });
+    }
+    if (totalAmount > user.balance) {
+      return res.status(400).json({ message: "Insufficient balance" });
+    }
+
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    // Validate the menuItems and options before saving
     const validatedMenuItems = await Promise.all(
       menuItems.map(async (item) => {
         const menuItem = await Menu.findById(item.menuItem);
@@ -348,7 +360,6 @@ export const createReservation = async (req, res) => {
           throw new Error(`Menu item with ID ${item.menuItem} not found`);
         }
 
-        // Validate the selected options
         const selectedOptions = item.selectedOptions || [];
         selectedOptions.forEach((option) => {
           const menuOption = menuItem.options.find((opt) => opt.name === option.name);
@@ -365,7 +376,10 @@ export const createReservation = async (req, res) => {
       })
     );
 
-    // Create the reservation with validated menu items
+    user.points -= points; // Deduct the points
+    user.balance -= totalAmount; // Deduct the total amount from the balance
+    await user.save(); // Save the updated user with reduced points and balance
+
     const reservation = new Reservation({
       user: userId,
       restaurant: restaurantId,
@@ -376,20 +390,21 @@ export const createReservation = async (req, res) => {
       note,
       name,
       contactNo,
-      totalAmount, // Save the total amount directly
+      totalAmount, // Save the total amount before points or balance deduction
       promotionCard, // Save the promotion card if provided
       discountApplied, // Save the discount applied if provided
+      pointsApplied: points, // Save the points applied in the reservation
+      balanceDeducted: totalAmount, // Save the balance deducted in the reservation
     });
 
     await reservation.save();
 
-    res
-      .status(201)
-      .json({ message: "Reservation created successfully", reservation });
+    res.status(201).json({ message: "Reservation created successfully", reservation });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 export const getPrAndOr = async (req, res)=> {
   const {id} = req.params
