@@ -376,9 +376,9 @@ export const createReservation = async (req, res) => {
       })
     );
 
-    user.points -= points; // Deduct the points
-    user.balance -= totalAmount; // Deduct the total amount from the balance
-    await user.save(); // Save the updated user with reduced points and balance
+    user.points -= points;
+    user.balance -= totalAmount;
+    await user.save(); 
 
     const reservation = new Reservation({
       user: userId,
@@ -390,11 +390,11 @@ export const createReservation = async (req, res) => {
       note,
       name,
       contactNo,
-      totalAmount, // Save the total amount before points or balance deduction
-      promotionCard, // Save the promotion card if provided
-      discountApplied, // Save the discount applied if provided
-      pointsApplied: points, // Save the points applied in the reservation
-      balanceDeducted: totalAmount, // Save the balance deducted in the reservation
+      totalAmount, 
+      promotionCard, 
+      discountApplied, 
+      pointsApplied: points,
+      balanceDeducted: totalAmount, 
     });
 
     await reservation.save();
@@ -740,11 +740,31 @@ export const getTransactionHistory = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const transactions = await Transaction.find({ userId });
+    const topUpTransactions = await Transaction.find({ userId }).sort({ createdAt: -1 });
+    const reservations = await Reservation.find({ user: userId })
+      .populate('restaurant', 'name') // Populate the restaurant name
+      .select('totalAmount restaurant createdAt') // Only select necessary fields
+      .sort({ createdAt: -1 });
+    const reservationHistory = reservations.map((reservation) => ({
+      type: 'Reservation', // Specify that this is a reservation entry
+      restaurantName: reservation.restaurant.name,
+      amountPaid: reservation.totalAmount,
+      date: reservation.createdAt,
+    }));
+
+    const topUpHistory = topUpTransactions.map((transaction) => ({
+      type: 'Top-up',
+      amount: transaction.amount,
+      date: transaction.createdAt,
+    }));
+
+    const transactionHistory = [...topUpHistory, ...reservationHistory];
+
+    transactionHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.status(200).json({
       success: true,
-      transactions,
+      transactionHistory,
     });
   } catch (error) {
     console.error(error);

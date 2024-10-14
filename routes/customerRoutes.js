@@ -53,7 +53,7 @@ router.get('/getHistory',getHistory );
 router.get('/hasRated' , hasUserRated);
 router.get('/getPoints' ,  getPoints);
 router.post('/topup', topup);
-router.get('/transactionHistory' , getTransactionHistory);
+router.get('/transactionHistory/:userId' , getTransactionHistory);
 router.get('/getBalance/:userId' , getBalance )
 
 export default router;
