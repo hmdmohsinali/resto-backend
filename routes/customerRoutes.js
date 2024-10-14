@@ -22,6 +22,7 @@ import {
   getPoints,
   topup,
   getTransactionHistory,
+  getBalance,
 } from "../controllers/userController.js";
 
 
@@ -52,6 +53,7 @@ router.get('/getHistory',getHistory );
 router.get('/hasRated' , hasUserRated);
 router.get('/getPoints' ,  getPoints);
 router.post('/topup', topup);
-router.get('/transactionHistory' , getTransactionHistory)
+router.get('/transactionHistory' , getTransactionHistory);
+router.get('/getBalance/:userId' , getBalance )
 
 export default router;

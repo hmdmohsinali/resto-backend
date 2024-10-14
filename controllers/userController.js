@@ -683,8 +683,6 @@ export const getPoints = async (req, res) => {
 export const topup = async (req,res) => {
 
   const {userId , amount , transactionId} = req.body
-  
-  
   try {
     
     let user = await Customer.findById(userId);
@@ -738,3 +736,26 @@ export const getTransactionHistory = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+export const getBalance = async (req, res) => {
+
+  const {userId}  = req.params
+
+  try {
+
+    const user = await Customer.findById(userId);
+    if(!user){
+      res.status(404).json({message : "User not Found"})
+    }
+    const balance = user.balance;
+    const points = user.points
+    
+    res.status(200).json({success : true, balance, points })
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({message: "Server Error ", error})
+  }
+  
+}

@@ -22,7 +22,7 @@ const customerSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: function (v) {
-        return /\d{10}/.test(v); // Example: valid 10-digit phone number
+        return /\d{10}/.test(v);
       },
       message: props => `${props.value} is not a valid phone number!`
     }
