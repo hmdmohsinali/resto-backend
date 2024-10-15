@@ -56,7 +56,7 @@ export const login = async (req, res) => {
     }
 
     const token = generateToken(customer);
-
+    const userId = customer._id
     
     res.cookie('token', token, {
       httpOnly: true,
@@ -67,7 +67,7 @@ export const login = async (req, res) => {
 
    
 
-    return res.status(200).json({ msg: 'Login successful' });
+    return res.status(200).json({ msg: 'Login successful' , id: userId });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
   }
