@@ -3,16 +3,16 @@ import dotenv from'dotenv';
 import adminRoute from './routes/adminRoutes.js'
 import superAdminRoute from './routes/superAdminRoutes.js'
 import connectToDB from "./config/connectToDB.js";
-import customerRoutes from './routes/customerRoutes.js'
-import cors from 'cors'
+import customerRoutes from './routes/customerRoutes.js';
+import cors from 'cors';
 import fileUpload from 'express-fileupload';
 import cookieParser from 'cookie-parser';
-dotenv.config()
+dotenv.config();
 const app= express();
-const PORT = process.env.PORT || 4000
+const PORT = process.env.PORT || 4000;
 
 const corsOptions = {
-    origin: "http://localhost:5173",
+    origin: "https://resto-super-admin.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -21,7 +21,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
-app.use(express.json())
+app.use(express.json());
 
 app.use(fileUpload({
     useTempFiles: true,

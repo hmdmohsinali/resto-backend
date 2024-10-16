@@ -62,7 +62,7 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',  // Use HTTPS in production
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,  // 1 day in milliseconds
+      maxAge: 24 * 60 * 60 * 1000,  
     });
 
    
