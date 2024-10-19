@@ -12,7 +12,7 @@ const app= express();
 const PORT = process.env.PORT || 4000;
 
 const corsOptions = {
-    origin: "https://resto-super-admin.vercel.app",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
