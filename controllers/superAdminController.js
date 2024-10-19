@@ -55,17 +55,8 @@ export const login = async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    const token = generateToken(customer);
-    const userId = customer._id
-    
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',  // Use HTTPS in production
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,  
-    });
-
    
+    const userId = customer._id
 
     return res.status(200).json({ msg: 'Login successful' , id: userId });
   } catch (error) {

@@ -9,7 +9,6 @@ import {
   pointsManagement,
   signUp,
 } from "../controllers/superAdminController.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -20,11 +19,11 @@ router.get("/", (req, res) => {
 router.post("/signup", signUp);
 router.post("/login", login);
 router.get('/logout', logout);
-router.post("/addRestaurant", verifyToken, addRestaurant);
-router.get("/getRestaurants", verifyToken, getRestaurantNames);
-router.delete("/deleteRestaurant", verifyToken, deleteRestaurant);
-router.put("/changeRestaurantPassword", verifyToken, changeRestaurantPassword);
-router.post("/points", verifyToken, pointsManagement);
+router.post("/addRestaurant", addRestaurant);
+router.get("/getRestaurants", getRestaurantNames);
+router.delete("/deleteRestaurant", deleteRestaurant);
+router.put("/changeRestaurantPassword", changeRestaurantPassword);
+router.post("/points", pointsManagement);
 
 
 export default router;
