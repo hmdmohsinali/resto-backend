@@ -16,10 +16,14 @@ import Points from "../models/Points.js";
 import Transaction from "../models/Transaction.js";
 dotenv.config();
 
+const generateOtp = () => Math.floor(10000 + Math.random() * 90000);
+
 export const signUp = async (req, res) => {
   const { email, password } = req.body;
-  console.log("Request body:", req.body); // Check if req.body is coming through
-
+  if(!email || !password)
+  
+    res.status(404).json({message: "Enter both email and passowrd"})
+  console.log(req.body)
   try {
     let user = await Customer.findOne({ email });
     if (user) {
@@ -29,18 +33,72 @@ export const signUp = async (req, res) => {
 
     console.log("Customer not found, proceeding with signup");
 
-    const customer = new Customer({ email, password });
-    await customer.save();
-    console.log("Customer saved to database");
+    // Generate OTP and save it temporarily (e.g., store it in Redis or DB with a TTL)
+    const otp = generateOtp();
+    console.log("Generated OTP:", otp);
 
-    return res
-      .status(201)
-      .json({ msg: "Customer created successfully", id: customer._id });
+    // Send OTP via email
+    const mailOptions = {
+      from: 'admin@resto.com.my', // Your sender email
+      to: email, // User's email
+      subject: 'Email Verification - OTP',
+      text: `Your verification code is: ${otp}`, // Simple text message
+    };
+
+    transporter.sendMail(mailOptions, async (err, info) => {
+      if (err) {
+        console.log("Error sending email:", err);
+        return res.status(500).json({ error: "Error sending OTP" });
+      } else {
+        console.log("Email sent:", info.response);
+        
+        // Instead of creating a customer immediately, save the OTP in a temporary collection (e.g., OTP or verification)
+        const customer = new Customer({
+          email,
+          password,
+          otp, // Store the OTP temporarily
+          isVerified: false, // User is not verified yet
+        });
+        await customer.save();
+        console.log("Customer saved with OTP");
+
+        return res.status(201).json({ msg: "OTP sent to email. Please verify.", id: customer._id });
+      }
+    });
   } catch (error) {
     console.log("Error:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
+
+export const verifyOtpforSignup = async (req, res) => {
+  const { email, otp } = req.body;
+  
+  try {
+    // Find the user based on email
+    const customer = await Customer.findOne({ email });
+
+    if (!customer) {
+      return res.status(404).json({ msg: "Customer not found" });
+    }
+
+    // Check if the provided OTP matches
+    if (customer.otp !== otp) {
+      return res.status(400).json({ msg: "Invalid OTP" });
+    }
+
+    // If OTP is correct, mark the user as verified
+    customer.isVerified = true;
+    customer.otp = null; // Clear the OTP once verified
+    await customer.save();
+
+    return res.status(200).json({ msg: "Email verified successfully" });
+  } catch (error) {
+    console.log("Error:", error.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
 
 export const login = async (req, res) => {
   const { email, password } = req.body;

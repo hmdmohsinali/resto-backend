@@ -23,6 +23,7 @@ import {
   topup,
   getTransactionHistory,
   getBalance,
+  verifyOtpforSignup,
 } from "../controllers/userController.js";
 
 
@@ -33,6 +34,7 @@ router.get("/", (req, res) => {
 })
 
 router.post('/signup', signUp);
+router.post('/verifyOtpforSignup', verifyOtpforSignup);
 router.post('/login', login);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);

@@ -27,6 +27,10 @@ const customerSchema = new mongoose.Schema({
       message: props => `${props.value} is not a valid phone number!`
     }
   },
+  isVerified:{
+    type: Boolean,
+    default: false,
+  },
   address: {
     type: String,
     trim: true
