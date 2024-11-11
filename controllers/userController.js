@@ -520,6 +520,26 @@ export const getMenuItems = async (req, res) => {
   }
 };
 
+export const deleteMenuItem = async (req, res) => {
+  const { menuItemId } = req.params; // Get the menuItemId from the route parameters
+
+  try {
+    // Find and delete the menu item
+    const deletedMenuItem = await Menu.findByIdAndDelete(menuItemId);
+
+    // If no menu item is found, send a 404 response
+    if (!deletedMenuItem) {
+      return res.status(404).json({ message: "Menu item not found" });
+    }
+
+    // Send a success response
+    res.status(200).json({ message: "Menu item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting menu item:", error); // Log error for debugging
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 export const getCategories = async (req, res) => {
   const { restaurantId } = req.query; 
 

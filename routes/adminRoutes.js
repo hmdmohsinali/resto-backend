@@ -31,6 +31,7 @@ import {
   getPromotionalImages,
   deleteTable,
 } from "../controllers/adminController.js";
+import { deleteMenuItem } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -58,6 +59,7 @@ router.put("/editMenu", editMenuItem);
 
 router.put("/toggleMenuVisibility", toggleMenuItemVisibility);
 router.get("/getAllMenuItems", getAllMenuItems);
+router.delete('/deleteMenuItem/:menuItemId', deleteMenuItem);
 
 router.post("/upateAdress", updateAdress);
 router.post("/toggleVacation", toggleVacationMode);
