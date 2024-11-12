@@ -12,7 +12,7 @@ const app= express();
 const PORT = process.env.PORT || 4000;
 
 const corsOptions = {
-    origin: ["*", "http://localhost:5173", "https://resto-super-admin.vercel.app", "https://resto-sub-admins.vercel.app"],
+    origin: ["*", "http://localhost:5173", "https://resto-super-admin.vercel.app", "https://resto-sub-admin.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
