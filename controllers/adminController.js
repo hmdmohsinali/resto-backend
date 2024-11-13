@@ -460,8 +460,9 @@ export const config = {
 
 
 export const addMenuItem = async (req, res) => {
-  const { restaurantId, name, description, price, categoryName, options } = req.body;
-  const imageFile = req.files?.image; // Access the uploaded image from req.files
+  const { restaurantId, name, description, price, categoryName } = req.body;
+  let { options } = req.body;
+  const imageFile = req.files?.image;
 
   if (!imageFile) {
     return res.status(400).json({
@@ -471,6 +472,19 @@ export const addMenuItem = async (req, res) => {
   }
 
   try {
+    // Parse options if it's a JSON string
+    if (typeof options === "string") {
+      options = JSON.parse(options);
+    }
+
+    // Ensure options is an array of objects with 'name' and 'values'
+    if (!Array.isArray(options) || !options.every(opt => opt.name && Array.isArray(opt.values))) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid options format. Each option should have a name and an array of values.",
+      });
+    }
+
     // Validate the image file type
     const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!validMimeTypes.includes(imageFile.mimetype)) {
@@ -482,10 +496,10 @@ export const addMenuItem = async (req, res) => {
 
     // Upload the image to Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(imageFile.tempFilePath, {
-      folder: "menu_items", // Folder to organize images in Cloudinary
+      folder: "menu_items",
     });
 
-    const imageUrl = uploadResponse.secure_url; // Get the secure URL of the uploaded image
+    const imageUrl = uploadResponse.secure_url;
 
     // Find or create the category for the restaurant
     let selectedCategory = await Category.findOne({
@@ -501,15 +515,15 @@ export const addMenuItem = async (req, res) => {
       await selectedCategory.save();
     }
 
-    // Create the new menu item with the image URL
+    // Create the new menu item with the image URL and options array
     const menuItem = new Menu({
       restaurant: restaurantId,
       name,
       description,
       price,
-      category: selectedCategory._id, // Link the category by its ID
-      image: imageUrl, // Save the Cloudinary image URL
-      options,
+      category: selectedCategory._id,
+      image: imageUrl,
+      options, // Parsed options array
     });
 
     await menuItem.save();
