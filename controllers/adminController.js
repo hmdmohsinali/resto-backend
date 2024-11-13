@@ -458,11 +458,18 @@ export const addMenuItem = async (req, res) => {
     description,
     price,
     categoryName,
-    image,
+    image, // This should be the base64 or file path of the image
     options,
   } = req.body;
 
   try {
+    // Upload the image to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(image, {
+      folder: "menu_items", // Folder to organize images in Cloudinary
+    });
+
+    const imageUrl = uploadResponse.secure_url; // Get the secure URL of the uploaded image
+
     // Find or create the category for the restaurant
     let selectedCategory = await Category.findOne({
       restaurant: restaurantId,
@@ -477,14 +484,14 @@ export const addMenuItem = async (req, res) => {
       await selectedCategory.save();
     }
 
-    // Create the new menu item
+    // Create the new menu item with the image URL
     const menuItem = new Menu({
       restaurant: restaurantId,
       name,
       description,
       price,
       category: selectedCategory._id, // Link the category by its ID
-      image,
+      image: imageUrl, // Save the Cloudinary image URL
       options,
     });
 

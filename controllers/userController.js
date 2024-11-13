@@ -482,7 +482,6 @@ export const getMenuItems = async (req, res) => {
   const { restaurantId, categoryName } = req.query; 
 
   try {
-    // categoryName is provided, find the category first
     let categoryId = null;
     if (categoryName) {
       const category = await Category.findOne({
