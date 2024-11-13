@@ -460,7 +460,7 @@ export const config = {
 
 
 export const addMenuItem = async (req, res) => {
-  const form = new formidable.IncomingForm();
+  const form = formidable({ multiples: true }); // Updated syntax
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
