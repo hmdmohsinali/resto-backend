@@ -7,6 +7,7 @@ import Promotion from "../models/Promotion.js";
 import Menu from "../models/Menu.js";
 import cloudinary from "../config/cloudinary.js";
 import Reservation from "../models/Reservations.js";
+import formidable from "formidable";
 
 export const signUp = async (req, res) => {
   const { name, username, password } = req.body;
@@ -451,63 +452,79 @@ export const getCategories = async (req, res) => {
   }
 };
 
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parser for file handling
+  },
+};
+
+
 export const addMenuItem = async (req, res) => {
-  const {
-    restaurantId,
-    name,
-    description,
-    price,
-    categoryName,
-    image, // This should be the base64 or file path of the image
-    options,
-  } = req.body;
+  const form = new formidable.IncomingForm();
 
-  try {
-    // Upload the image to Cloudinary
-    const uploadResponse = await cloudinary.uploader.upload(image, {
-      folder: "menu_items", // Folder to organize images in Cloudinary
-    });
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: 'Form parsing error' });
+    }
 
-    const imageUrl = uploadResponse.secure_url; // Get the secure URL of the uploaded image
+    const { restaurantId, name, description, price, categoryName, options } = fields;
+    const imageFile = files.image; // Retrieve the uploaded image file
 
-    // Find or create the category for the restaurant
-    let selectedCategory = await Category.findOne({
-      restaurant: restaurantId,
-      name: categoryName,
-    });
+    try {
+      // Validate the image file
+      const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validMimeTypes.includes(imageFile.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: "Only image files are allowed.",
+        });
+      }
 
-    if (!selectedCategory) {
-      selectedCategory = new Category({
+      // Upload the image to Cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(imageFile.filepath, {
+        folder: "menu_items", // Folder to organize images in Cloudinary
+      });
+      const imageUrl = uploadResponse.secure_url; // Get the secure URL of the uploaded image
+
+      // Find or create the category for the restaurant
+      let selectedCategory = await Category.findOne({
         restaurant: restaurantId,
         name: categoryName,
       });
-      await selectedCategory.save();
+
+      if (!selectedCategory) {
+        selectedCategory = new Category({
+          restaurant: restaurantId,
+          name: categoryName,
+        });
+        await selectedCategory.save();
+      }
+
+      // Create the new menu item with the image URL
+      const menuItem = new Menu({
+        restaurant: restaurantId,
+        name,
+        description,
+        price,
+        category: selectedCategory._id, // Link the category by its ID
+        image: imageUrl, // Save the Cloudinary image URL
+        options,
+      });
+
+      await menuItem.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Menu item added successfully",
+        data: menuItem,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
-
-    // Create the new menu item with the image URL
-    const menuItem = new Menu({
-      restaurant: restaurantId,
-      name,
-      description,
-      price,
-      category: selectedCategory._id, // Link the category by its ID
-      image: imageUrl, // Save the Cloudinary image URL
-      options,
-    });
-
-    await menuItem.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Menu item added successfully",
-      data: menuItem,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
+  });
 };
 
 export const editMenuItem = async (req, res) => {
