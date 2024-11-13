@@ -468,7 +468,7 @@ export const getPrAndOr = async (req, res)=> {
   const {id} = req.params
   try {
     const restaurants = await Restaurant.findById(id).select(
-      " name description imagesCover operationalHours promotionalHours locationLink"
+      " name description imagesCover operationalHours promotionalHours locationLink address"
     );
 
     return res.status(200).json(restaurants);
@@ -479,7 +479,7 @@ export const getPrAndOr = async (req, res)=> {
 }
 
 export const getMenuItems = async (req, res) => {
-  const { restaurantId, categoryName } = req.query; // Get restaurantId and optional categoryName
+  const { restaurantId, categoryName } = req.query; 
 
   try {
     // categoryName is provided, find the category first
