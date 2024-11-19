@@ -9,8 +9,7 @@ import fileUpload from 'express-fileupload';
 import cookieParser from 'cookie-parser';
 dotenv.config();
 const app= express();
-const PORT = process.env.PORT || 4000;
-
+const PORT = process.env.PORT || 4000
 const corsOptions = {
     origin: ["*", "http://localhost:5173", "https://resto-super-admin.vercel.app", "https://resto-sub-admins.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
