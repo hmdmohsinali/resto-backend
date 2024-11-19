@@ -458,7 +458,6 @@ export const config = {
   },
 };
 
-
 export const addMenuItem = async (req, res) => {
   const { restaurantId, name, description, price, categoryName } = req.body;
   let { options } = req.body;
