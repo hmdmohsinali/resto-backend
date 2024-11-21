@@ -176,7 +176,7 @@ export const pointsManagement = async (req, res) => {
 };
 
 
-export const sendNotification =  async (req, res) => {
+export const sendNotification = async (req, res) => {
   const { title, content } = req.body;
 
   if (!title || !content) {
@@ -190,24 +190,43 @@ export const sendNotification =  async (req, res) => {
     if (tokens.length === 0) {
       return res.status(404).json({ error: "No customers with FCM tokens found" });
     }
+
     const message = {
       notification: {
         title,
         body: content,
       },
-      tokens,
     };
 
-    // Send the notification
-    const response = await admin.messaging().sendMulticast(message);
+    // Initialize the Messaging instance
+    const messaging = admin.messaging();
 
-    // Handle invalid tokens
+    // Firebase limits batch size to 500 tokens
+    const batchSize = 500;
+    let successCount = 0;
+    let failureCount = 0;
     const invalidTokens = [];
-    response.responses.forEach((resp, idx) => {
-      if (!resp.success) invalidTokens.push(tokens[idx]);
-    });
 
-    // Optionally, remove invalid tokens from the database
+    for (let i = 0; i < tokens.length; i += batchSize) {
+      const batchTokens = tokens.slice(i, i + batchSize);
+
+      const response = await messaging.sendEachForMulticast({
+        tokens: batchTokens,
+        ...message,
+      });
+
+      // Track successes and failures
+      response.responses.forEach((resp, idx) => {
+        if (resp.success) {
+          successCount++;
+        } else {
+          failureCount++;
+          invalidTokens.push(batchTokens[idx]);
+        }
+      });
+    }
+
+    // Optionally remove invalid tokens
     await Customer.updateMany(
       { fcmToken: { $in: invalidTokens } },
       { $unset: { fcmToken: 1 } }
@@ -215,12 +234,13 @@ export const sendNotification =  async (req, res) => {
 
     return res.status(200).json({
       message: "Notifications sent successfully",
-      successCount: response.successCount,
-      failureCount: response.failureCount,
+      successCount,
+      failureCount,
     });
   } catch (error) {
     console.error("Error sending notifications:", error);
     return res.status(500).json({ error: "Failed to send notifications" });
   }
 };
+
 
