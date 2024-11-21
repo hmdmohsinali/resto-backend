@@ -7,6 +7,7 @@ import {
   login,
   logout,
   pointsManagement,
+  sendNotification,
   signUp,
 } from "../controllers/superAdminController.js";
 
@@ -24,6 +25,7 @@ router.get("/getRestaurants", getRestaurantNames);
 router.delete("/deleteRestaurant", deleteRestaurant);
 router.put("/changeRestaurantPassword", changeRestaurantPassword);
 router.post("/points", pointsManagement);
+router.post('/sendNotification', sendNotification);
 
 
 export default router;

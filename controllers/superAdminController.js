@@ -5,7 +5,8 @@ import SuperAdmin from "../models/SuperAdmin.js";
 import Restaurant from "../models/Restaurant.js";
 import Points from "../models/Points.js";
 import jwt from "jsonwebtoken";
-
+import Customer from "../models/Customer.js";
+import admin from "../firebaseAdmin.js";
 dotenv.config();
 
 
@@ -175,4 +176,51 @@ export const pointsManagement = async (req, res) => {
 };
 
 
+export const sendNotification =  async (req, res) => {
+  const { title, content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ error: "Title and content are required" });
+  }
+
+  try {
+    const customers = await Customer.find({}, "fcmToken");
+    const tokens = customers.map((customer) => customer.fcmToken).filter(Boolean);
+
+    if (tokens.length === 0) {
+      return res.status(404).json({ error: "No customers with FCM tokens found" });
+    }
+    const message = {
+      notification: {
+        title,
+        body: content,
+      },
+      tokens,
+    };
+
+    // Send the notification
+    const response = await admin.messaging().sendMulticast(message);
+
+    // Handle invalid tokens
+    const invalidTokens = [];
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) invalidTokens.push(tokens[idx]);
+    });
+
+    // Optionally, remove invalid tokens from the database
+    await Customer.updateMany(
+      { fcmToken: { $in: invalidTokens } },
+      { $unset: { fcmToken: 1 } }
+    );
+
+    return res.status(200).json({
+      message: "Notifications sent successfully",
+      successCount: response.successCount,
+      failureCount: response.failureCount,
+    });
+  } catch (error) {
+    console.error("Error sending notifications:", error);
+    return res.status(500).json({ error: "Failed to send notifications" });
+  }
+};
 
