@@ -35,6 +35,9 @@ const customerSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  fcmToken: {
+    type: String,
+  },
   otp: {
     type: String,
 },

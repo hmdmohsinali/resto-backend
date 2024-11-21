@@ -101,9 +101,12 @@ export const verifyOtpforSignup = async (req, res) => {
 
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, fcmToken } = req.body;
+
   console.log("Request body:", req.body);
+
   try {
+  
     const customer = await Customer.findOne({ email });
     if (!customer) {
       return res.status(400).json({ msg: "Invalid credentials" });
@@ -113,11 +116,18 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
-    return res
-      .status(200)
-      .json({ msg: "Login successful", userId: customer._id });
+
+    if (fcmToken) {
+      customer.fcmToken = fcmToken; // Assuming the schema has an `fcmToken` field
+      await customer.save();
+    }
+
+    return res.status(200).json({
+      msg: "Login successful",
+      userId: customer._id,
+    });
   } catch (error) {
-    console.log("Error:", error.message);
+    console.error("Error:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
