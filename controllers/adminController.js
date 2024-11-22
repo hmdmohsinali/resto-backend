@@ -454,7 +454,7 @@ export const getCategories = async (req, res) => {
 
 export const config = {
   api: {
-    bodyParser: false, // Disable default body parser for file handling
+    bodyParser: false, 
   },
 };
 

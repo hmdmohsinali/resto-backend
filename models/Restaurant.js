@@ -70,14 +70,14 @@ const restaurantSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    trim: true, // To remove excess spaces
+    trim: true, 
   },
   address: {
-    type: String, // Address field, not required
+    type: String, 
     trim: true,
   },
   locationLink: {
-    type: String, // Location link field, not required
+    type: String, 
     trim: true,
   },
   vacationMode: {
