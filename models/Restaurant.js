@@ -66,7 +66,7 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
   },
   imagesCover: {
-    type: [String], // Array of strings to store image URLs
+    type: [String], 
   },
   description: {
     type: String,
