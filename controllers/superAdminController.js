@@ -66,15 +66,15 @@ export const login = async (req, res) => {
 };
 
 export const addRestaurant = async (req, res) => {
-  const { name, username, password } = req.body;
+  const { name, email, password } = req.body;
 
   try {
-    let existingRestaurant = await Restaurant.findOne({ username });
+    let existingRestaurant = await Restaurant.findOne({ email });
     if (existingRestaurant) {
-      return res.status(400).json({ msg: "Username is already taken" });
+      return res.status(400).json({ msg: "email is already taken" });
     }
 
-    const newRestaurant = new Restaurant({ name, username, password });
+    const newRestaurant = new Restaurant({ name, email, password });
 
     await newRestaurant.save();
 

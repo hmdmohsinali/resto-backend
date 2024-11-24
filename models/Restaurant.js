@@ -47,12 +47,12 @@ const restaurantSchema = new mongoose.Schema({
     required: [true, "Restaurant name is required"],
     trim: true,
   },
-  username: {
+  email: {
     type: String,
-    required: [true, "Username is required"],
+    required: [true, "email is required"],
     unique: true,
     trim: true,
-    minlength: [3, "Username must be at least 3 characters long"],
+    minlength: [3, "email must be at least 3 characters long"],
   },
   password: {
     type: String,

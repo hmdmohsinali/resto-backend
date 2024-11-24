@@ -10,15 +10,15 @@ import Reservation from "../models/Reservations.js";
 import formidable from "formidable";
 
 export const signUp = async (req, res) => {
-  const { name, username, password } = req.body;
+  const { name, email, password } = req.body;
 
   try {
-    let existingRestaurant = await Restaurant.findOne({ username });
+    let existingRestaurant = await Restaurant.findOne({ email });
     if (existingRestaurant) {
-      return res.status(400).json({ msg: "Username is already taken" });
+      return res.status(400).json({ msg: "email is already taken" });
     }
 
-    const newRestaurant = new Restaurant({ name, username, password });
+    const newRestaurant = new Restaurant({ name, email, password });
 
     await newRestaurant.save();
 
@@ -35,17 +35,17 @@ export const signUp = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    let restaurant = await Restaurant.findOne({ username });
+    let restaurant = await Restaurant.findOne({ email });
     if (!restaurant) {
-      return res.status(400).json({ msg: "Invalid username or password" });
+      return res.status(400).json({ msg: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, restaurant.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid username or password" });
+      return res.status(400).json({ msg: "Invalid email or password" });
     }
 
     return res.status(200).json({ msg: "Login successful", restaurant });
@@ -59,11 +59,11 @@ export const login = async (req, res) => {
 //   const updates = req.body; 
 //   const { id } = req.query;
 
-//   // Disallow updating username and password
-//   if (updates.username || updates.password) {
+//   // Disallow updating email and password
+//   if (updates.email || updates.password) {
 //     return res.status(400).json({
 //       success: false,
-//       message: "You cannot update the username or password",
+//       message: "You cannot update the email or password",
 //     });
 //   }
 
@@ -116,10 +116,10 @@ export const updateRestaurantDetails = async (req, res) => {
   const updates = req.body; 
   const { id } = req.query;
   console.log(updates)
-  if (updates.username || updates.password) {
+  if (updates.email || updates.password) {
     return res.status(400).json({
       success: false,
-      message: "You cannot update the username or password",
+      message: "You cannot update the email or password",
     });
   }
 
@@ -458,6 +458,9 @@ export const config = {
   },
 };
 
+
+
+
 export const addMenuItem = async (req, res) => {
   const { restaurantId, name, description, price, categoryName } = req.body;
   let { options } = req.body;
@@ -469,6 +472,8 @@ export const addMenuItem = async (req, res) => {
       message: "No image file provided.",
     });
   }
+
+  
 
   try {
     // Parse options if it's a JSON string
