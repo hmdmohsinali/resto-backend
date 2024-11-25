@@ -39,7 +39,7 @@ const promotionalHoursSchema = new mongoose.Schema({
       min: 1,
       max: 100
   }
-});
+})
 
 const restaurantSchema = new mongoose.Schema({
   name: {
@@ -51,8 +51,6 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     required: [true, "email is required"],
     unique: true,
-    trim: true,
-    minlength: [3, "email must be at least 3 characters long"],
   },
   password: {
     type: String,

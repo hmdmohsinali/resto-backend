@@ -386,6 +386,7 @@ export const getAllRestaurantsWithTags = async (req, res) => {
 // };
 
 
+
 export const createReservation = async (req, res) => {
   const {
     userId,
@@ -404,6 +405,7 @@ export const createReservation = async (req, res) => {
   } = req.body;
 
   try {
+    // Find user
     const user = await Customer.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -416,6 +418,7 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({ message: "Insufficient balance" });
     }
 
+    // Find restaurant
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
@@ -444,10 +447,12 @@ export const createReservation = async (req, res) => {
       })
     );
 
+    // Deduct points and balance from user
     user.points -= points;
     user.balance -= totalAmount;
     await user.save(); 
 
+    // Create reservation
     const reservation = new Reservation({
       user: userId,
       restaurant: restaurantId,
@@ -467,11 +472,31 @@ export const createReservation = async (req, res) => {
 
     await reservation.save();
 
+    // Send email to the restaurant
+    const emailOptions = {
+      from: process.env.Email_User,
+      to: restaurant.email, // Assuming the restaurant document has an 'email' field
+      subject: "New Reservation Created",
+      text: `A new reservation has been made by ${name}.\n\n
+Reservation Details:
+- Date: ${date}
+- Time: ${time}
+- Guest Number: ${guestNumber}
+- Total Amount: ${totalAmount}
+- Contact No: ${contactNo}
+
+Additional Notes: ${note ? note : "No notes provided."}`,
+    };
+
+    await transporter.sendMail(emailOptions);
+
     res.status(201).json({ message: "Reservation created successfully", reservation });
   } catch (error) {
+    console.error("Error creating reservation:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 
 export const getPrAndOr = async (req, res)=> {
