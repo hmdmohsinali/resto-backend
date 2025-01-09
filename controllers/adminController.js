@@ -345,8 +345,8 @@ export const getPromotionalImages = async (req, res) => {
     const slider = await PromotionSlider.findOne({ restaurantId });
 
     if (!slider) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "No promotional images found for this restaurant",
       });
     }

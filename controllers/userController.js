@@ -276,7 +276,7 @@ export const getUserDetails = async (req, res) => {
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
     const restaurants = await Restaurant.find({}).select(
-      "averageRating mainTag name address imageSnippet imagesCover vacationMode"
+      "averageRating mainTag name address imageSnippet imagesCover vacationMode locationLink"
     );
 
     return res.status(200).json(restaurants);
