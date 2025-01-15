@@ -485,14 +485,7 @@ export const createReservation = async (req, res) => {
       reservationId: reservation._id.toString(), // Include reservation ID for linking
     });
 
-    // Send email to the restaurant
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.Email_User,
-        pass: process.env.Email_Password,
-      },
-    });
+    
 
     const emailOptions = {
       from: process.env.Email_User,
