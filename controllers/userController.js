@@ -14,6 +14,7 @@ import cloudinary from "../config/cloudinary.js";
 import Table from "../models/Table.js";
 import Points from "../models/Points.js";
 import Transaction from "../models/Transaction.js";
+import admin from "../firebaseAdmin.js";
 dotenv.config();
 
 const generateOtp = () => Math.floor(10000 + Math.random() * 90000);
@@ -387,6 +388,7 @@ export const getAllRestaurantsWithTags = async (req, res) => {
 
 
 
+
 export const createReservation = async (req, res) => {
   const {
     userId,
@@ -400,7 +402,7 @@ export const createReservation = async (req, res) => {
     contactNo,
     promotionCard,
     totalAmount,
-    points, 
+    points,
     discountApplied,
   } = req.body;
 
@@ -411,6 +413,7 @@ export const createReservation = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Check user's points and balance
     if (points > user.points) {
       return res.status(400).json({ message: "Insufficient points" });
     }
@@ -424,6 +427,7 @@ export const createReservation = async (req, res) => {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
+    // Validate menu items
     const validatedMenuItems = await Promise.all(
       menuItems.map(async (item) => {
         const menuItem = await Menu.findById(item.menuItem);
@@ -442,7 +446,7 @@ export const createReservation = async (req, res) => {
         return {
           menuItem: item.menuItem,
           quantity: item.quantity,
-          selectedOptions: selectedOptions,
+          selectedOptions,
         };
       })
     );
@@ -450,7 +454,7 @@ export const createReservation = async (req, res) => {
     // Deduct points and balance from user
     user.points -= points;
     user.balance -= totalAmount;
-    await user.save(); 
+    await user.save();
 
     // Create reservation
     const reservation = new Reservation({
@@ -463,16 +467,33 @@ export const createReservation = async (req, res) => {
       note,
       name,
       contactNo,
-      totalAmount, 
-      promotionCard, 
-      discountApplied, 
+      totalAmount,
+      promotionCard,
+      discountApplied,
       pointsApplied: points,
-      balanceDeducted: totalAmount, 
+      balanceDeducted: totalAmount,
     });
 
     await reservation.save();
 
+    // Push notification to Firebase Realtime Database
+    const db = admin.database();
+    const notificationsRef = db.ref(`notifications/${restaurantId}`); // Notifications for the specific restaurant
+    await notificationsRef.push({
+      message: `New reservation created by ${name}`,
+      timestamp: new Date().toISOString(),
+      reservationId: reservation._id.toString(), // Include reservation ID for linking
+    });
+
     // Send email to the restaurant
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.Email_User,
+        pass: process.env.Email_Password,
+      },
+    });
+
     const emailOptions = {
       from: process.env.Email_User,
       to: restaurant.email, // Assuming the restaurant document has an 'email' field
