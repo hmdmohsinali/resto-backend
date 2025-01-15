@@ -436,12 +436,16 @@ export const createReservation = async (req, res) => {
         }
 
         const selectedOptions = item.selectedOptions || [];
-        selectedOptions.forEach((option) => {
-          const menuOption = menuItem.options.find((opt) => opt.name === option.name);
-          if (!menuOption || !menuOption.values.includes(option.value)) {
-            throw new Error(`Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`);
-          }
-        });
+        if (selectedOptions.length > 0) {
+          selectedOptions.forEach((option) => {
+            const menuOption = menuItem.options.find((opt) => opt.name === option.name);
+            if (!menuOption || !menuOption.values.includes(option.value)) {
+              throw new Error(
+                `Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`
+              );
+            }
+          });
+        }
 
         return {
           menuItem: item.menuItem,
@@ -478,18 +482,16 @@ export const createReservation = async (req, res) => {
 
     // Push notification to Firebase Realtime Database
     const db = admin.database();
-    const notificationsRef = db.ref(`notifications/${restaurantId}`); // Notifications for the specific restaurant
+    const notificationsRef = db.ref(`notifications/${restaurantId}`);
     await notificationsRef.push({
       message: `New reservation created by ${name}`,
       timestamp: new Date().toISOString(),
-      reservationId: reservation._id.toString(), // Include reservation ID for linking
+      reservationId: reservation._id.toString(),
     });
-
-    
 
     const emailOptions = {
       from: process.env.Email_User,
-      to: restaurant.email, // Assuming the restaurant document has an 'email' field
+      to: restaurant.email,
       subject: "New Reservation Created",
       text: `A new reservation has been made by ${name}.\n\n
 Reservation Details:
@@ -511,7 +513,129 @@ Additional Notes: ${note ? note : "No notes provided."}`,
   }
 };
 
+// export const createReservation = async (req, res) => {
+//   const {
+//     userId,
+//     restaurantId,
+//     guestNumber,
+//     date,
+//     time,
+//     menuItems,
+//     note,
+//     name,
+//     contactNo,
+//     promotionCard,
+//     totalAmount,
+//     points,
+//     discountApplied,
+//   } = req.body;
 
+//   try {
+//     // Find user
+//     const user = await Customer.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Check user's points and balance
+//     if (points > user.points) {
+//       return res.status(400).json({ message: "Insufficient points" });
+//     }
+//     if (totalAmount > user.balance) {
+//       return res.status(400).json({ message: "Insufficient balance" });
+//     }
+
+//     // Find restaurant
+//     const restaurant = await Restaurant.findById(restaurantId);
+//     if (!restaurant) {
+//       return res.status(404).json({ message: "Restaurant not found" });
+//     }
+
+//     // Validate menu items
+//     const validatedMenuItems = await Promise.all(
+//       menuItems.map(async (item) => {
+//         const menuItem = await Menu.findById(item.menuItem);
+//         if (!menuItem) {
+//           throw new Error(`Menu item with ID ${item.menuItem} not found`);
+//         }
+
+//         const selectedOptions = item.selectedOptions || [];
+//         if (selectedOptions.length > 0) {
+//           selectedOptions.forEach((option) => {
+//             const menuOption = menuItem.options.find((opt) => opt.name === option.name);
+//             if (!menuOption || !menuOption.values.includes(option.value)) {
+//               throw new Error(
+//                 `Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`
+//               );
+//             }
+//           });
+//         }
+
+//         return {
+//           menuItem: item.menuItem,
+//           quantity: item.quantity,
+//           selectedOptions,
+//         };
+//       })
+//     );
+
+//     // Deduct points and balance from user
+//     user.points -= points;
+//     user.balance -= totalAmount;
+//     await user.save();
+
+//     // Create reservation
+//     const reservation = new Reservation({
+//       user: userId,
+//       restaurant: restaurantId,
+//       guestNumber,
+//       date,
+//       time,
+//       menuItems: validatedMenuItems,
+//       note,
+//       name,
+//       contactNo,
+//       totalAmount,
+//       promotionCard,
+//       discountApplied,
+//       pointsApplied: points,
+//       balanceDeducted: totalAmount,
+//     });
+
+//     await reservation.save();
+
+//     // Push notification to Firebase Realtime Database
+//     const db = admin.database();
+//     const notificationsRef = db.ref(`notifications/${restaurantId}`);
+//     await notificationsRef.push({
+//       message: `New reservation created by ${name}`,
+//       timestamp: new Date().toISOString(),
+//       reservationId: reservation._id.toString(),
+//     });
+
+//     const emailOptions = {
+//       from: process.env.Email_User,
+//       to: restaurant.email,
+//       subject: "New Reservation Created",
+//       text: `A new reservation has been made by ${name}.\n\n
+// Reservation Details:
+// - Date: ${date}
+// - Time: ${time}
+// - Guest Number: ${guestNumber}
+// - Total Amount: ${totalAmount}
+// - Contact No: ${contactNo}
+
+// Additional Notes: ${note ? note : "No notes provided."}`,
+//     };
+
+//     await transporter.sendMail(emailOptions);
+
+//     res.status(201).json({ message: "Reservation created successfully", reservation });
+//   } catch (error) {
+//     console.error("Error creating reservation:", error);
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+// };
 
 export const getPrAndOr = async (req, res)=> {
   const {id} = req.params
