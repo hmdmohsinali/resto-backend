@@ -950,19 +950,47 @@ export const getRestaurant =  async (req, res) => {
 export const getTables = async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    
-    const tables = await Table.find({ restaurantId }).select("tableNo totalPax");
 
-    if (!tables.length) {
-      return res.status(404).json({ message: "No tables found for this restaurant" });
+    // Validate if restaurantId is provided
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: "Restaurant ID is required" });
     }
 
-    res.json(tables);
+    // Fetch tables from the database
+    const tables = await Table.find({ restaurantId }).select("tableNo totalPax");
+
+    // Handle case where no tables are found
+    if (!tables || tables.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "No tables found for the specified restaurant",
+      });
+    }
+
+    // Return the tables data
+    res.status(200).json({
+      success: true,
+      data: tables,
+      message: "Tables fetched successfully",
+    });
   } catch (error) {
     console.error("Error fetching tables:", error);
-    res.status(500).json({ message: "Server error" });
+
+    // Differentiating between known and unknown errors
+    if (error.name === "CastError") {
+      // Handle invalid restaurantId format
+      return res.status(400).json({ success: false, message: "Invalid restaurant ID format" });
+    }
+
+    // For any other server errors
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred. Please try again later.",
+    });
   }
-}
+};
+
 
 
 export const getReservationDetails = async (req, res) => {
