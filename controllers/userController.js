@@ -455,6 +455,10 @@ export const createReservation = async (req, res) => {
       })
     );
 
+    if (!name || name.trim() === "") {
+      return res.status(400).json({ message: "Name is required" });
+    }
+    
     // Deduct points and balance from user
     user.points -= points;
     user.balance -= totalAmount;
