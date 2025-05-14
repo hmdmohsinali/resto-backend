@@ -840,7 +840,7 @@ export const getRestaurantReviews = async (req, res) => {
     // Fetch the reviews and populate the customer field to get the user's full name
     const reviews = await Review.find({ restaurant: restaurantId })
       .select("customer images reviewText rating createdAt reservation") // Select specific fields from the Review schema
-      .populate('customer', 'fullName')  // Populate the 'customer' field with the user's 'fullName'
+      .populate('customer', 'fullName email')  // Populate the 'customer' field with the user's 'fullName' and email as fallback
       .exec();
 
     const totalReviews = reviews.length;
@@ -858,7 +858,9 @@ export const getRestaurantReviews = async (req, res) => {
     });
 
     const formattedReviews = reviews.map((review) => ({
-      fullName: review.customer.fullName, // Get the user's full name from the populated 'customer' field
+      // Use fullName if available, otherwise use email or "Anonymous User"
+      fullName: review.customer?.fullName || 
+               (review.customer?.email ? review.customer.email.split('@')[0] : "Anonymous User"),
       daysAgo: moment(review.createdAt).fromNow(), // e.g., "2 days ago"
       reviewText: review.reviewText,
       images: review.images,
