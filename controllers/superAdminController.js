@@ -21,6 +21,7 @@ const generateToken = (user) => {
 
 export const signUp = async (req, res) => {
   const { email, password } = req.body;
+  console.log(email, password);
 
   try {
     let user = await SuperAdmin.findOne({ email });
@@ -33,6 +34,7 @@ export const signUp = async (req, res) => {
 
     return res.status(201).json({ msg: 'SuperAdmin created successfully' });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: 'Server error' });
   }
 };
