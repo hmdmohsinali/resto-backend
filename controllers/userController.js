@@ -1001,9 +1001,10 @@ export const getTransactionHistory = async (req, res) => {
       .populate('restaurant', 'name') // Populate the restaurant name
       .select('totalAmount restaurant createdAt') // Only select necessary fields
       .sort({ createdAt: -1 });
+      
     const reservationHistory = reservations.map((reservation) => ({
       type: 'Reservation', // Specify that this is a reservation entry
-      restaurantName: reservation.restaurant.name,
+      restaurantName: reservation.restaurant ? reservation.restaurant.name : 'Deleted Restaurant',
       amountPaid: reservation.totalAmount,
       date: reservation.createdAt,
     }));
