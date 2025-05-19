@@ -7,7 +7,7 @@ import Reservation from "../models/Reservations.js";
 import Menu from "../models/Menu.js";
 import Review from "../models/Review.js";
 import { updateRestaurantRating } from "../utils/updateRating.js";
-import moment from "moment"
+import moment from "moment-timezone";
 import Category from "../models/Category.js";
 import Promotion from "../models/Promotion.js";
 import cloudinary from "../config/cloudinary.js";
