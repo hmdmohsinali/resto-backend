@@ -1014,6 +1014,7 @@ export const getReservationDetails = async (req, res) => {
       name:reservation.name,
       contactNo: reservation.contactNo,
       completed : reservation.completed,
+      time: reservation.time,
       orderDate: reservation.date, // Reservation date
       note: reservation.note, // Reservation note
       pax: reservation.guestNumber, // Total guests (pax)
