@@ -1003,7 +1003,7 @@ export const getReservationDetails = async (req, res) => {
         path: 'menuItems.menuItem',
         select: 'name options', 
       })
-      .select('guestNumber date note menuItems contactNo name completed') // Select relevant fields from the reservation
+      .select('guestNumber date time note menuItems contactNo name completed') // Select relevant fields from the reservation
       .exec();
 
     if (!reservation) {
