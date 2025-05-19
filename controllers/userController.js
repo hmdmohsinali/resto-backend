@@ -469,7 +469,7 @@ export const createReservation = async (req, res) => {
       user: userId,
       restaurant: restaurantId,
       guestNumber,
-      date: new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000),,
+      date: new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000),
       time,
       menuItems: validatedMenuItems,
       note,
