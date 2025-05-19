@@ -276,13 +276,52 @@ export const getUserDetails = async (req, res) => {
 
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find({}).select(
-      "averageRating mainTag name address imageSnippet imagesCover vacationMode locationLink"
+    const allRestaurants = await Restaurant.find({ vacationMode: false }).select(
+      "averageRating mainTag name address imageSnippet imagesCover vacationMode locationLink operationalHours"
     );
 
-    return res.status(200).json(restaurants);
+    const currentTimeKL = moment().tz("Asia/Kuala_Lumpur");
+    const currentDay = currentTimeKL.format("dddd"); // e.g., "Monday"
+    const currentTime = currentTimeKL.format("HH:mm"); // e.g., "13:45"
+
+    const openRestaurants = allRestaurants.filter((restaurant) => {
+      const todayHours = restaurant.operationalHours.find(
+        (hours) => hours.day === currentDay
+      );
+
+      if (!todayHours) return false;
+
+      return currentTime >= todayHours.open && currentTime <= todayHours.close;
+    });
+
+    // Remove operationalHours from the final response to match the original output
+    const filteredResponse = openRestaurants.map(({ _doc }) => {
+      const {
+        averageRating,
+        mainTag,
+        name,
+        address,
+        imageSnippet,
+        imagesCover,
+        vacationMode,
+        locationLink,
+      } = _doc;
+
+      return {
+        averageRating,
+        mainTag,
+        name,
+        address,
+        imageSnippet,
+        imagesCover,
+        vacationMode,
+        locationLink,
+      };
+    });
+
+    return res.status(200).json(filteredResponse);
   } catch (error) {
-    console.error("Error fetching restaurants:", error.message);
+    console.error("Error fetching open restaurants:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
