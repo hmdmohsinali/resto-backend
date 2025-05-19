@@ -274,57 +274,45 @@ export const getUserDetails = async (req, res) => {
     }
 };
 
+
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
-    const allRestaurants = await Restaurant.find({ vacationMode: false }).select(
+    const currentTime = moment().tz("Asia/Kuala_Lumpur").format("HH:mm");
+    const currentDay = moment().tz("Asia/Kuala_Lumpur").format("dddd");
+
+    const allRestaurants = await Restaurant.find({
+      vacationMode: false,
+      operationalHours: { $exists: true, $ne: [] }
+    }).select(
       "averageRating mainTag name address imageSnippet imagesCover vacationMode locationLink operationalHours"
     );
 
-    const currentTimeKL = moment().tz("Asia/Kuala_Lumpur");
-    const currentDay = currentTimeKL.format("dddd"); // e.g., "Monday"
-    const currentTime = currentTimeKL.format("HH:mm"); // e.g., "13:45"
-
     const openRestaurants = allRestaurants.filter((restaurant) => {
       const todayHours = restaurant.operationalHours.find(
-        (hours) => hours.day === currentDay
+        (hour) => hour.day === currentDay
       );
 
       if (!todayHours) return false;
 
-      return currentTime >= todayHours.open && currentTime <= todayHours.close;
+      const { open, close } = todayHours;
+
+      return currentTime >= open && currentTime <= close;
     });
 
-    // Remove operationalHours from the final response to match the original output
-    const filteredResponse = openRestaurants.map(({ _doc }) => {
-      const {
-        averageRating,
-        mainTag,
-        name,
-        address,
-        imageSnippet,
-        imagesCover,
-        vacationMode,
-        locationLink,
-      } = _doc;
-
-      return {
-        averageRating,
-        mainTag,
-        name,
-        address,
-        imageSnippet,
-        imagesCover,
-        vacationMode,
-        locationLink,
-      };
+    // Remove operationalHours before sending response, to match original API structure
+    const formattedRestaurants = openRestaurants.map((rest) => {
+      const restObj = rest.toObject();
+      delete restObj.operationalHours;
+      return restObj;
     });
 
-    return res.status(200).json(filteredResponse);
+    return res.status(200).json(formattedRestaurants);
   } catch (error) {
     console.error("Error fetching open restaurants:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
+
 
 // export const createReservation = async (req, res) => {
 //   const {
