@@ -905,27 +905,34 @@ export const verfiyCard= async (req, res) => {
 
 export const getHistory = async (req, res) => {
   try {
-      const userId = req.query.userId; // assuming you're passing the user ID as a query parameter
-      const completed = req.query.completed; // filter by completion status, 'true' or 'false'
-      
-      if (!userId) {
-          return res.status(400).json({ message: "User ID is required." });
+    const userId = req.query.userId;
+    const completed = req.query.completed;
 
-      }
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
 
-      const reservations = await Reservation.find({ 
-          user: userId,
-          completed: completed
-      })
-      .populate('restaurant', 'name imageSnippet') // populating restaurant data (optional)
-      .populate('menuItems.menuItem', 'name price description image') // populating menu items data (optional)
-      .sort({ date: -1 }) // Sort by date in descending order (newest first)
+    const reservations = await Reservation.find({
+      user: userId,
+      completed: completed,
+    })
+      .populate('restaurant', 'name imageSnippet')
+      .populate('menuItems.menuItem', 'name price description image')
+      .sort({ date: -1 });
 
-      res.status(200).json(reservations);
+    // Increase each reservation's date by 1 day
+    const updatedReservations = reservations.map(reservation => {
+      const updated = reservation.toObject();
+      updated.date = new Date(new Date(reservation.date).getTime() + 24 * 60 * 60 * 1000);
+      return updated;
+    });
+
+    res.status(200).json(updatedReservations);
   } catch (error) {
-      res.status(500).json({ message: "An error occurred while fetching reservations.", error });
+    res.status(500).json({ message: "An error occurred while fetching reservations.", error });
   }
-}
+};
+
 
 export const getPoints = async (req, res) => {
   try {
