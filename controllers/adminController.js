@@ -883,62 +883,50 @@ export const deletePromotionCode = async (req, res) => {
 
 export const getCompletedReservations = async (req, res) => {
   try {
-    const restaurantId = req.query.restaurantId;
+      const restaurantId = req.query.restaurantId; // assuming you're passing the restaurant ID as a query parameter
 
-    if (!restaurantId) {
-      return res.status(400).json({ message: "Restaurant ID is required." });
-    }
+      if (!restaurantId) {
+          return res.status(400).json({ message: "Restaurant ID is required." });
+      }
 
-    const reservations = await Reservation.find({
-      restaurant: restaurantId,
-      completed: true,
-    })
+      const reservations = await Reservation.find({ 
+          restaurant: restaurantId,
+          completed: true // Fetching completed reservations
+      })
       .populate('menuItems.menuItem', 'name')
       .populate('user', 'name contactNo')
-      .sort({ date: -1 });
+      .sort({ date: -1 }); // Sort by date in descending order (newest first)
 
-    const updatedReservations = reservations.map(reservation => {
-      const updated = reservation.toObject();
-      updated.date = new Date(new Date(reservation.date).getTime() + 24 * 60 * 60 * 1000);
-      return updated;
-    });
-
-    res.status(200).json(updatedReservations);
+      res.status(200).json(reservations);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "An error occurred while fetching completed reservations.", error });
+      console.log(error);
+      res.status(500).json({ message: "An error occurred while fetching completed reservations.", error });
   }
 };
-
 
 export const getUpcomingReservations = async (req, res) => {
   try {
-    const restaurantId = req.query.restaurantId;
+      const restaurantId = req.query.restaurantId; // assuming you're passing the restaurant ID as a query parameter
 
-    if (!restaurantId) {
-      return res.status(400).json({ message: "Restaurant ID is required." });
-    }
+      if (!restaurantId) {
+          return res.status(400).json({ message: "Restaurant ID is required." });
+      }
 
-    const reservations = await Reservation.find({
-      restaurant: restaurantId,
-      completed: false,
-    })
+      const reservations = await Reservation.find({ 
+          restaurant: restaurantId,
+          completed: false // Fetching upcoming reservations
+      })
       .populate('menuItems.menuItem', 'name')
       .populate('user', 'name contactNo')
-      .sort({ date: -1 });
+      .sort({ date: -1 }); // Sort by date in descending order (newest first)
 
-    const updatedReservations = reservations.map(reservation => {
-      const updated = reservation.toObject();
-      updated.date = new Date(new Date(reservation.date).getTime() + 24 * 60 * 60 * 1000);
-      return updated;
-    });
-
-    res.status(200).json(updatedReservations);
+      res.status(200).json(reservations);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "An error occurred while fetching upcoming reservations.", error });
+      console.log(error);
+      res.status(500).json({ message: "An error occurred while fetching upcoming reservations.", error });
   }
 };
+
 
 export const getRestaurant =  async (req, res) => {
   try {
