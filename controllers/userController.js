@@ -432,7 +432,7 @@ export const createReservation = async (req, res) => {
     points,
     discountApplied,
   } = req.body;
-  console.log.log("menu items", menuItems)
+  console.log("menu items", menuItems)
   try {
     const user = await Customer.findById(userId);
     if (!user) {
