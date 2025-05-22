@@ -432,9 +432,8 @@ export const createReservation = async (req, res) => {
     points,
     discountApplied,
   } = req.body;
-
+  console.log.log("menu items", menuItems)
   try {
-    // Find user
     const user = await Customer.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -473,6 +472,7 @@ export const createReservation = async (req, res) => {
             }
           });
         }
+        console.log('selectedOptions', selectedOptions)
 
         return {
           menuItem: item.menuItem,
