@@ -998,12 +998,11 @@ export const getReservationDetails = async (req, res) => {
 
   try {
     const reservation = await Reservation.findById(reservationId)
-    
       .populate({
         path: 'menuItems.menuItem',
-        select: 'name options', 
+        select: 'name', // Only fetch the name (no need for 'options')
       })
-      .select('guestNumber date time note menuItems contactNo name completed') // Select relevant fields from the reservation
+      .select('guestNumber date time note menuItems contactNo name completed totalAmount discountApplied')
       .exec();
 
     if (!reservation) {
@@ -1011,24 +1010,26 @@ export const getReservationDetails = async (req, res) => {
     }
 
     const reservationDetails = {
-      name:reservation.name,
+      name: reservation.name,
       contactNo: reservation.contactNo,
-      completed : reservation.completed,
+      completed: reservation.completed,
       time: reservation.time,
-      orderDate: reservation.date, // Reservation date
-      note: reservation.note, // Reservation note
-      pax: reservation.guestNumber, // Total guests (pax)
+      orderDate: reservation.date, // Raw date (as stored in DB)
+      note: reservation.note,
+      pax: reservation.guestNumber,
+      totalAmount: reservation.totalAmount,
+      discountApplied: reservation.discountApplied,
       menuItems: reservation.menuItems.map(item => ({
         name: item.menuItem.name, // Menu item name
-        quantity: item.quantity, // Quantity of the menu item
-        options: item.menuItem.options // Menu item options
+        quantity: item.quantity,
+        selectedOptions: item.selectedOptions // Only user-selected options
       }))
     };
 
     res.status(200).json(reservationDetails);
   } catch (error) {
     console.error("Error fetching reservation details:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
