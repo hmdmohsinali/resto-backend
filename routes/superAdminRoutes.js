@@ -4,11 +4,13 @@ import {
   changeRestaurantPassword,
   deleteRestaurant,
   getRestaurantNames,
+  getRestaurantReservations,
   login,
   logout,
   pointsManagement,
   sendNotification,
   signUp,
+  sendMonthlyReport
 } from "../controllers/superAdminController.js";
 
 const router = express.Router();
@@ -26,6 +28,7 @@ router.delete("/deleteRestaurant", deleteRestaurant);
 router.put("/changeRestaurantPassword", changeRestaurantPassword);
 router.post("/points", pointsManagement);
 router.post('/sendNotification', sendNotification);
-
+router.get('/restaurant/:restaurantId', getRestaurantReservations);
+router.post('/restaurant/:restaurantId/send-report', sendMonthlyReport);
 
 export default router;

@@ -7,6 +7,10 @@ import Points from "../models/Points.js";
 import jwt from "jsonwebtoken";
 import Customer from "../models/Customer.js";
 import admin from "../firebaseAdmin.js";
+import Reservation from "../models/Reservations.js";
+import nodemailer from 'nodemailer';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 dotenv.config();
 
 
@@ -246,3 +250,272 @@ export const sendNotification = async (req, res) => {
 };
 
 
+export const getRestaurantReservations = async (req, res) => {
+  try {
+      const { restaurantId } = req.params;
+      const { 
+          page = 1, 
+          limit = 10, 
+          startDate, 
+          endDate,
+          month,
+          year 
+      } = req.query;
+
+      // Build query object
+      const query = { restaurant: restaurantId };
+
+      // Add date filters if provided
+      if (startDate && endDate) {
+          query.date = {
+              $gte: new Date(startDate),
+              $lte: new Date(endDate)
+          };
+      } else if (month && year) {
+          // Filter by specific month and year
+          const startOfMonth = new Date(year, month - 1, 1);
+          const endOfMonth = new Date(year, month, 0);
+          query.date = {
+              $gte: startOfMonth,
+              $lte: endOfMonth
+          };
+      }
+
+      // Calculate pagination
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+
+      // Get total count for pagination
+      const totalReservations = await Reservation.countDocuments(query);
+
+      let reservations = await Reservation.find(query)
+          .populate('user', 'name email')
+          .select('user totalAmount date time')
+          .sort({ date: -1, time: -1 })
+          .skip(skip)
+          .limit(parseInt(limit));
+
+      if (!reservations || reservations.length === 0) {
+          return res.status(404).json({
+              success: false,
+              message: 'No reservations found for this restaurant'
+          });
+      }
+
+      // Calculate net amount and replace totalAmount
+      reservations = reservations.map(r => {
+        const deduction = (r.totalAmount * 0.12) + 1;
+        const netAmount = Math.max(0, Number((r.totalAmount - deduction).toFixed(2)));
+        const reservationObj = r.toObject();
+        reservationObj.totalAmount = netAmount;
+        return reservationObj;
+      });
+
+      // Calculate pagination info
+      const totalPages = Math.ceil(totalReservations / parseInt(limit));
+      const hasNextPage = page < totalPages;
+      const hasPrevPage = page > 1;
+
+      res.status(200).json({
+          success: true,
+          data: reservations,
+          pagination: {
+              currentPage: parseInt(page),
+              totalPages,
+              totalReservations,
+              hasNextPage,
+              hasPrevPage,
+              limit: parseInt(limit)
+          }
+      });
+
+  } catch (error) {
+      res.status(500).json({
+          success: false,
+          message: 'Error fetching reservations',
+          error: error.message
+      });
+  }
+};
+
+// Send monthly report to restaurant
+export const sendMonthlyReport = async (req, res) => {
+    try {
+        const { restaurantId } = req.params;
+        const { month, year } = req.query;
+
+        // Get restaurant details
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
+        }
+
+        // Get reservations for the specified month
+        const startOfMonth = new Date(year, month - 1, 1);
+        const endOfMonth = new Date(year, month, 0);
+
+        const reservations = await Reservation.find({
+            restaurant: restaurantId,
+            date: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+            }
+        }).populate('user', 'name email')
+          .sort({ date: 1, time: 1 });
+
+        if (!reservations || reservations.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No reservations found for this period'
+            });
+        }
+
+        // Calculate total transactions and net revenue
+        const totalTransactions = reservations.length;
+        const totalRevenue = reservations.reduce((sum, r) => {
+            const deduction = (r.totalAmount * 0.12) + 1;
+            const netAmount = Math.max(0, Number((r.totalAmount - deduction).toFixed(2)));
+            return sum + netAmount;
+        }, 0);
+
+        const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
+        const periodStart = `1 ${monthName}`;
+        const periodEnd = `${new Date(year, month, 0).getDate()} ${monthName} ${year}`;
+
+        // HTML email template
+        const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border:1px solid #ccc; border-radius:8px; overflow:hidden;">
+          <div style="background:#444; color:#fff; padding:10px 20px; font-size:18px; font-weight:bold;">Email Contents</div>
+          <div style="padding:24px 20px 10px 20px;">
+            <div style="font-size:18px; font-weight:bold; margin-bottom:10px;">Subject: 🧾 Monthly Transaction Statement – ${monthName} ${year}</div>
+            <div style="margin-bottom:18px;">
+              Hi <b>${restaurant.name}</b>,
+            </div>
+            <div style="margin-bottom:18px;">
+              Attached is your monthly transaction summary for <b>${monthName} ${year}</b>, reflecting all purchases made by users this month.
+            </div>
+            <div style="margin-bottom:18px;">
+              <div style="margin-bottom:6px;">📅 <b>Period:</b> ${periodStart} – ${periodEnd}</div>
+              <div style="margin-bottom:6px;">🧾 <b>Total Transactions:</b> <b>${totalTransactions}</b></div>
+              <div>💰 <b>Total Revenue :</b> <span style="color:#28a745; font-weight:bold;">RM ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>
+            </div>
+            <div style="margin-top:24px; color:#444;">Warm regards,<br><a href="https://resto.com" style="color:#0070f3; font-weight:bold; text-decoration:none;">Resto.com Team</a></div>
+          </div>
+        </div>
+        `;
+
+        // Group reservations by date
+        const groupedReservations = reservations.reduce((groups, reservation) => {
+            const date = new Date(reservation.date).toLocaleDateString();
+            if (!groups[date]) {
+                groups[date] = [];
+            }
+            groups[date].push(reservation);
+            return groups;
+        }, {});
+
+        // Sort dates
+        const sortedDates = Object.keys(groupedReservations).sort((a, b) => {
+            return new Date(a) - new Date(b);
+        });
+
+        // Create PDF
+        const doc = new jsPDF();
+        
+        // Add title
+        doc.setFontSize(16);
+        doc.text(`${restaurant.name} - Transaction Report`, 14, 15);
+        doc.setFontSize(12);
+        doc.text(`Month: ${monthName} ${year}`, 14, 25);
+        
+        let currentY = 35;
+        let totalAmount = 0;
+
+        // Add reservations by date
+        sortedDates.forEach((date, dateIndex) => {
+            const dateReservations = groupedReservations[date];
+            
+            // Add date header
+            doc.setFontSize(12);
+            doc.text(date, 14, currentY);
+            currentY += 7;
+
+            // Prepare table data (show net amount)
+            const tableData = dateReservations.map((r, index) => {
+                const deduction = (r.totalAmount * 0.12) + 1;
+                const netAmount = Math.max(0, Number((r.totalAmount - deduction).toFixed(2)));
+                return [
+                    index + 1,
+                    r.time,
+                    `RM ${netAmount.toFixed(2)}`
+                ];
+            });
+
+            // Add table
+            autoTable(doc, {
+                startY: currentY,
+                head: [['No.', 'Time', 'Amount']],
+                body: tableData,
+                theme: 'grid',
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [41, 128, 185] }
+            });
+
+            currentY = doc.lastAutoTable.finalY + 10;
+            totalAmount += dateReservations.reduce((sum, r) => {
+                const deduction = (r.totalAmount * 0.12) + 1;
+                const netAmount = Math.max(0, Number((r.totalAmount - deduction).toFixed(2)));
+                return sum + netAmount;
+            }, 0);
+
+            if (dateIndex < sortedDates.length - 1) {
+                doc.setDrawColor(200, 200, 200);
+                doc.line(14, currentY - 5, 196, currentY - 5);
+                currentY += 5;
+            }
+        });
+
+        // Add total
+        doc.setFontSize(12);
+        doc.text(`Total Amount: RM ${totalAmount.toFixed(2)}`, 14, currentY);
+
+        // Generate PDF buffer
+        const pdfBuffer = doc.output('arraybuffer');
+
+        // Configure email transporter
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.Email_User,
+                pass: process.env.Email_Pass
+            }
+        });
+
+        // Send email
+        await transporter.sendMail({
+            from: process.env.Email_User,
+            to: restaurant.email,
+            subject: `🧾 Monthly Transaction Statement – ${monthName} ${year}`,
+            html,
+            attachments: [{
+                filename: `${restaurant.name}-transactions-${monthName}-${year}.pdf`,
+                content: Buffer.from(pdfBuffer)
+            }]
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Report sent successfully to restaurant email'
+        });
+
+    } catch (error) {
+        console.error('Error sending report:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error sending report',
+            error: error.message
+        });
+    }
+}; 
