@@ -399,7 +399,7 @@ export const sendMonthlyReport = async (req, res) => {
             <div style="margin-bottom:18px;">
               <div style="margin-bottom:6px;">📅 <b>Period:</b> ${periodStart} – ${periodEnd}</div>
               <div style="margin-bottom:6px;">🧾 <b>Total Transactions:</b> <b>${totalTransactions}</b></div>
-              <div>💰 <b>Total Revenue :</b> <span style="color:#28a745; font-weight:bold;">RM ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>
+              <div>💰 <b>Total Revenue :</b> <span style="color:#EFCD00; font-weight:bold;">RM ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>
             </div>
             <div style="margin-top:24px; color:#444;">Warm regards,<br><a href="https://resto.com" style="color:#0070f3; font-weight:bold; text-decoration:none;">Resto.com Team</a></div>
           </div>
@@ -424,13 +424,16 @@ export const sendMonthlyReport = async (req, res) => {
         // Create PDF
         const doc = new jsPDF();
         
+        // Add logo
+        doc.addImage('Logo.png', 'PNG', 14, 10, 30, 30);
+        
         // Add title
         doc.setFontSize(16);
-        doc.text(`${restaurant.name} - Transaction Report`, 14, 15);
+        doc.text(`${restaurant.name} - Transaction Report`, 50, 25);
         doc.setFontSize(12);
-        doc.text(`Month: ${monthName} ${year}`, 14, 25);
+        doc.text(`Month: ${monthName} ${year}`, 50, 35);
         
-        let currentY = 35;
+        let currentY = 45;
         let totalAmount = 0;
 
         // Add reservations by date
@@ -460,7 +463,7 @@ export const sendMonthlyReport = async (req, res) => {
                 body: tableData,
                 theme: 'grid',
                 styles: { fontSize: 10 },
-                headStyles: { fillColor: [41, 128, 185] }
+                headStyles: { fillColor: [239, 205, 0] } // #EFCD00 in RGB
             });
 
             currentY = doc.lastAutoTable.finalY + 10;
@@ -479,6 +482,7 @@ export const sendMonthlyReport = async (req, res) => {
 
         // Add total
         doc.setFontSize(12);
+        doc.setTextColor(239, 205, 0); // #EFCD00 in RGB
         doc.text(`Total Amount: RM ${totalAmount.toFixed(2)}`, 14, currentY);
 
         // Generate PDF buffer
