@@ -459,32 +459,53 @@ export const createReservation = asyncHandler(async (req, res) => {
         if (!menuItem) {
           throw new Error(`Menu item with ID ${item.menuItem} not found`);
         }
-
-        const selectedOptions = (item.selectedOptions || []).map((opt) => ({
-          name: opt.name?.trim(),
-          value: opt.value?.trim(),
-        }));
-
-        // Validate options
-        selectedOptions.forEach((option) => {
-          const menuOption = menuItem.options.find(
-            (opt) => opt.name.trim() === option.name
-          );
-
-          if (
-            !menuOption ||
-            !menuOption.values.map((v) => v.trim()).includes(option.value)
-          ) {
-            throw new Error(
-              `Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`
-            );
+    
+        const selectedOptions = item.selectedOptions || [];
+    
+        // Handle if menu has no options at all
+        if (!Array.isArray(menuItem.options) || menuItem.options.length === 0) {
+          if (selectedOptions.length > 0) {
+            console.warn(`⚠️ Skipping option validation: Menu item "${menuItem.name}" has no defined options`);
           }
-        });
-
+    
+          return {
+            menuItem: item.menuItem,
+            quantity: item.quantity,
+            selectedOptions: [], // ignore provided options
+          };
+        }
+    
+        // Validate each selected option
+        const validatedOptions = selectedOptions.map((option) => {
+          const optionName = option.name?.trim().toLowerCase();
+          const optionValue = option.value?.trim().toLowerCase();
+    
+          const menuOption = menuItem.options.find(
+            (opt) => opt.name?.trim().toLowerCase() === optionName
+          );
+    
+          if (!menuOption) {
+            console.warn(`⚠️ Option name "${option.name}" not found in "${menuItem.name}". Skipping.`);
+            return null; // Skip unknown option
+          }
+    
+          const normalizedValues = menuOption.values.map(val => val.trim().toLowerCase());
+    
+          if (!normalizedValues.includes(optionValue)) {
+            console.warn(`⚠️ Invalid value "${option.value}" for option "${option.name}" in "${menuItem.name}". Skipping.`);
+            return null; // Skip invalid option
+          }
+    
+          return {
+            name: option.name,
+            value: option.value,
+          };
+        }).filter(Boolean); // Remove any nulls
+    
         return {
           menuItem: item.menuItem,
           quantity: item.quantity,
-          selectedOptions,
+          selectedOptions: validatedOptions,
         };
       })
     );
