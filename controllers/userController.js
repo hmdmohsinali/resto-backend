@@ -416,7 +416,7 @@ export const getAllRestaurantsWithTags = async (req, res) => {
 
 
 
-export const createReservation = async (req, res) => {
+export const createReservation = asyncHandler(async (req, res) => {
   const {
     userId,
     restaurantId,
@@ -432,28 +432,27 @@ export const createReservation = async (req, res) => {
     points,
     discountApplied,
   } = req.body;
-  console.log("menu items", menuItems)
-  try {
-    const user = await Customer.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
-    // Check user's points and balance
+  console.log("menu items", menuItems);
+
+  try {
+    // Check user
+    const user = await Customer.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     if (points > user.points) {
       return res.status(400).json({ message: "Insufficient points" });
     }
+
     if (totalAmount > user.balance) {
       return res.status(400).json({ message: "Insufficient balance" });
     }
 
-    // Find restaurant
+    // Check restaurant
     const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant) {
-      return res.status(404).json({ message: "Restaurant not found" });
-    }
+    if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
-    // Validate menu items
+    // Validate each menu item and its options
     const validatedMenuItems = await Promise.all(
       menuItems.map(async (item) => {
         const menuItem = await Menu.findById(item.menuItem);
@@ -461,18 +460,26 @@ export const createReservation = async (req, res) => {
           throw new Error(`Menu item with ID ${item.menuItem} not found`);
         }
 
-        const selectedOptions = item.selectedOptions || [];
-        if (selectedOptions.length > 0) {
-          selectedOptions.forEach((option) => {
-            const menuOption = menuItem.options.find((opt) => opt.name === option.name);
-            if (!menuOption || !menuOption.values.includes(option.value)) {
-              throw new Error(
-                `Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`
-              );
-            }
-          });
-        }
-        console.log('selectedOptions', selectedOptions)
+        const selectedOptions = (item.selectedOptions || []).map((opt) => ({
+          name: opt.name?.trim(),
+          value: opt.value?.trim(),
+        }));
+
+        // Validate options
+        selectedOptions.forEach((option) => {
+          const menuOption = menuItem.options.find(
+            (opt) => opt.name.trim() === option.name
+          );
+
+          if (
+            !menuOption ||
+            !menuOption.values.map((v) => v.trim()).includes(option.value)
+          ) {
+            throw new Error(
+              `Invalid option "${option.value}" for "${option.name}" in menu item ${menuItem.name}`
+            );
+          }
+        });
 
         return {
           menuItem: item.menuItem,
@@ -485,8 +492,8 @@ export const createReservation = async (req, res) => {
     if (!name || name.trim() === "") {
       return res.status(400).json({ message: "Name is required" });
     }
-    
-    // Deduct points and balance from user
+
+    // Deduct from user
     user.points -= points;
     user.balance -= totalAmount;
     await user.save();
@@ -511,7 +518,7 @@ export const createReservation = async (req, res) => {
 
     await reservation.save();
 
-    // Push notification to Firebase Realtime Database
+    // Firebase notification
     const db = admin.database();
     const notificationsRef = db.ref(`notifications/${restaurantId}`);
     await notificationsRef.push({
@@ -520,6 +527,7 @@ export const createReservation = async (req, res) => {
       reservationId: reservation._id.toString(),
     });
 
+    // Email
     const emailOptions = {
       from: process.env.Email_User,
       to: restaurant.email,
@@ -537,13 +545,15 @@ Additional Notes: ${note ? note : "No notes provided."}`,
 
     await transporter.sendMail(emailOptions);
 
-    res.status(201).json({ message: "Reservation created successfully", reservation });
+    res.status(201).json({
+      message: "Reservation created successfully",
+      reservation,
+    });
   } catch (error) {
     console.error("Error creating reservation:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
-
+});
 // export const createReservation = async (req, res) => {
 //   const {
 //     userId,
