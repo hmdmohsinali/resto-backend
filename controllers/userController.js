@@ -899,6 +899,7 @@ export const getRestaurantReviews = async (req, res) => {
     const reviews = await Review.find({ restaurant: restaurantId })
       .select("customer images reviewText rating createdAt reservation") // Select specific fields from the Review schema
       .populate('customer', 'fullName email')  // Populate the 'customer' field with the user's 'fullName' and email as fallback
+      .sort({ createdAt: -1 })
       .exec();
 
     const totalReviews = reviews.length;
