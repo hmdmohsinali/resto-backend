@@ -291,24 +291,28 @@ export const getAllRestaurantsWithTags = async (req, res) => {
       const todayHours = restaurant.operationalHours.find(
         (hour) => hour.day === currentDay
       );
-
       if (!todayHours) return false;
 
       const { open, close } = todayHours;
-
       return currentTime >= open && currentTime <= close;
     });
 
-    // Remove operationalHours before sending response, to match original API structure
-    const formattedRestaurants = openRestaurants.map((rest) => {
-      const restObj = rest.toObject();
-      delete restObj.operationalHours;
-      return restObj;
-    });
+    const restaurantDataWithMenus = await Promise.all(
+      openRestaurants.map(async (rest) => {
+        const menus = await Menu.find({
+          restaurant: rest._id,
+          visible: true
+        }).select("name description price category image options");
 
-    return res.status(200).json(formattedRestaurants);
+        const restObj = rest.toObject();
+        restObj.menuItems = menus; // ✅ Add menuItems
+        return restObj;            // ✅ Keep operationalHours
+      })
+    );
+
+    return res.status(200).json(restaurantDataWithMenus);
   } catch (error) {
-    console.error("Error fetching open restaurants:", error.message);
+    console.error("Error fetching open restaurants with menus:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
