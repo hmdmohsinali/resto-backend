@@ -486,13 +486,13 @@ export const sendMonthlyReport = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.Email_User,
-        pass: process.env.Email_Pass
+        user: process.env.Email_Monthly,
+        pass: process.env.Email_Monthly_Pass
       }
     });
 
     await transporter.sendMail({
-      from: process.env.Email_User,
+      from: process.env.Email_Monthly,
       to: restaurant.email,
       subject: `🧾 Monthly Transaction Statement – ${monthName} ${year}`,
       html,
