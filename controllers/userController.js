@@ -560,7 +560,8 @@ export const createReservation = asyncHandler(async (req, res) => {
     console.log("Sending reservation email from:", process.env.Email_User, "to:", restaurant.email);
     const emailOptions = {
       from: process.env.Email_User,
-      to: restaurant.email,
+      // to: restaurant.email,
+      to: "hafiz@gmail.com",
       subject: "New Reservation Created",
       text: `A new reservation has been made by ${name}.\n\n
 Reservation Details:
