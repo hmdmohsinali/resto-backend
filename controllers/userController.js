@@ -553,6 +553,11 @@ export const createReservation = asyncHandler(async (req, res) => {
     });
 
     // Email
+    if (!restaurant.email || !/^[^@]+@[^@]+\.[^@]+$/.test(restaurant.email)) {
+      console.error("Invalid restaurant email:", restaurant.email);
+      return res.status(400).json({ message: "Invalid restaurant email" });
+    }
+    console.log("Sending reservation email from:", process.env.Email_User, "to:", restaurant.email);
     const emailOptions = {
       from: process.env.Email_User,
       to: restaurant.email,
@@ -568,7 +573,13 @@ Reservation Details:
 Additional Notes: ${note ? note : "No notes provided."}`,
     };
 
-    await transporter.sendMail(emailOptions);
+    try {
+      const info = await transporter.sendMail(emailOptions);
+      console.log("Reservation email sent:", info);
+    } catch (err) {
+      console.error("Error sending reservation email:", err);
+      return res.status(500).json({ message: "Failed to send reservation email", error: err.message });
+    }
 
     res.status(201).json({
       message: "Reservation created successfully",
