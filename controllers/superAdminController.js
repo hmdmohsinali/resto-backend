@@ -482,7 +482,8 @@ export const sendMonthlyReport = async (req, res) => {
     doc.text(`Total Amount: RM ${totalAmount.toFixed(2)}`, 14, currentY);
 
     const pdfBuffer = doc.output('arraybuffer');
-
+    console.log(process.env.Email_Monthly);
+    console.log(process.env.Email_Monthly_Pass);
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -493,7 +494,8 @@ export const sendMonthlyReport = async (req, res) => {
 
     await transporter.sendMail({
       from: process.env.Email_Monthly,
-      to: restaurant.email,
+      // to: restaurant.email,
+      to: "hafiz@gmail.com",
       subject: `🧾 Monthly Transaction Statement – ${monthName} ${year}`,
       html,
       attachments: [{
