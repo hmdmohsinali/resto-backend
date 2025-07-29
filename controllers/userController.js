@@ -277,9 +277,7 @@ export const getUserDetails = async (req, res) => {
 
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
-    const currentTime = moment().tz("Asia/Kuala_Lumpur").format("HH:mm");
-    const currentDay = moment().tz("Asia/Kuala_Lumpur").format("dddd");
-
+    // Removed time and day logic
     const allRestaurants = await Restaurant.find({
       vacationMode: false,
       operationalHours: { $exists: true, $ne: [] }
@@ -287,32 +285,23 @@ export const getAllRestaurantsWithTags = async (req, res) => {
       "averageRating mainTag name address imageSnippet imagesCover vacationMode locationLink operationalHours"
     );
 
-    const openRestaurants = allRestaurants.filter((restaurant) => {
-      const todayHours = restaurant.operationalHours.find(
-        (hour) => hour.day === currentDay
-      );
-      if (!todayHours) return false;
-
-      const { open, close } = todayHours;
-      return currentTime >= open && currentTime <= close;
-    });
-
+    // No filtering by open/close time
     const restaurantDataWithMenus = await Promise.all(
-      openRestaurants.map(async (rest) => {
+      allRestaurants.map(async (rest) => {
         const menus = await Menu.find({
           restaurant: rest._id,
           visible: true
         }).select("name description price category image options");
 
         const restObj = rest.toObject();
-        restObj.menuItems = menus; // ✅ Add menuItems
-        return restObj;            // ✅ Keep operationalHours
+        restObj.menuItems = menus;
+        return restObj;
       })
     );
 
     return res.status(200).json(restaurantDataWithMenus);
   } catch (error) {
-    console.error("Error fetching open restaurants with menus:", error.message);
+    console.error("Error fetching restaurants with menus:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
