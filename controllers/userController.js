@@ -277,7 +277,9 @@ export const getUserDetails = async (req, res) => {
 
 export const getAllRestaurantsWithTags = async (req, res) => {
   try {
-    // Removed time and day logic
+    const currentTime = moment().tz("Asia/Kuala_Lumpur").format("HH:mm");
+    const currentDay = moment().tz("Asia/Kuala_Lumpur").format("dddd");
+
     const allRestaurants = await Restaurant.find({
       vacationMode: false,
       operationalHours: { $exists: true, $ne: [] }
@@ -285,23 +287,32 @@ export const getAllRestaurantsWithTags = async (req, res) => {
       "averageRating mainTag name address imageSnippet imagesCover vacationMode locationLink operationalHours"
     );
 
-    // No filtering by open/close time
+    const openRestaurants = allRestaurants.filter((restaurant) => {
+      const todayHours = restaurant.operationalHours.find(
+        (hour) => hour.day === currentDay
+      );
+      if (!todayHours) return false;
+
+      const { open, close } = todayHours;
+      return currentTime >= open && currentTime <= close;
+    });
+
     const restaurantDataWithMenus = await Promise.all(
-      allRestaurants.map(async (rest) => {
+      openRestaurants.map(async (rest) => {
         const menus = await Menu.find({
           restaurant: rest._id,
           visible: true
         }).select("name description price category image options");
 
         const restObj = rest.toObject();
-        restObj.menuItems = menus;
-        return restObj;
+        restObj.menuItems = menus; // ✅ Add menuItems
+        return restObj;            // ✅ Keep operationalHours
       })
     );
 
     return res.status(200).json(restaurantDataWithMenus);
   } catch (error) {
-    console.error("Error fetching restaurants with menus:", error.message);
+    console.error("Error fetching open restaurants with menus:", error.message);
     return res.status(500).json({ error: "Server error" });
   }
 };
@@ -541,16 +552,16 @@ export const createReservation = asyncHandler(async (req, res) => {
       reservationId: reservation._id.toString(),
     });
 
-    // Email
+    // Send email to restaurant
     if (!restaurant.email || !/^[^@]+@[^@]+\.[^@]+$/.test(restaurant.email)) {
       console.error("Invalid restaurant email:", restaurant.email);
       return res.status(400).json({ message: "Invalid restaurant email" });
     }
+    
     console.log("Sending reservation email from:", process.env.Email_User, "to:", restaurant.email);
-    const emailOptions = {
+    const restaurantEmailOptions = {
       from: process.env.Email_User,
       to: restaurant.email,
-      // to: "hafiz@gmail.com",
       subject: "New Reservation Created",
       text: `A new reservation has been made by ${name}.\n\n
 Reservation Details:
@@ -563,12 +574,39 @@ Reservation Details:
 Additional Notes: ${note ? note : "No notes provided."}`,
     };
 
+    // Send email to customer
+    const customerEmailOptions = {
+      from: process.env.Email_User,
+      to: user.email,
+      subject: "Reservation Confirmation",
+      text: `Dear ${name},\n\n
+Your reservation has been successfully created!\n\n
+Reservation Details:
+- Restaurant: ${restaurant.name}
+- Date: ${date}
+- Time: ${time}
+- Guest Number: ${guestNumber}
+- Total Amount: ${totalAmount}
+- Points Applied: ${points}
+- Balance Deducted: ${totalAmount}
+
+Additional Notes: ${note ? note : "No notes provided."}\n\n
+Thank you for choosing our service!\n
+Best regards,\n
+Resto Team`,
+    };
+
     try {
-      const info = await transporter.sendMail(emailOptions);
-      console.log("Reservation email sent:", info);
+      // Send email to restaurant
+      const restaurantInfo = await transporter.sendMail(restaurantEmailOptions);
+      console.log("Restaurant reservation email sent:", restaurantInfo);
+      
+      // Send email to customer
+      const customerInfo = await transporter.sendMail(customerEmailOptions);
+      console.log("Customer confirmation email sent:", customerInfo);
     } catch (err) {
-      console.error("Error sending reservation email:", err);
-      return res.status(500).json({ message: "Failed to send reservation email", error: err.message });
+      console.error("Error sending reservation emails:", err);
+      return res.status(500).json({ message: "Failed to send reservation emails", error: err.message });
     }
 
     res.status(201).json({
